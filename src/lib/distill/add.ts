@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { and, count, eq, ne } from "drizzle-orm";
 
 import { anthropic, type DeployTarget } from "@/lib/anthropic";
+import { isNotFound } from "@/lib/cma/errors";
 import { db, schema } from "@/lib/db";
 import { activeRun, getSubject } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
@@ -29,7 +30,9 @@ async function startRun(subject: Subject, target: DeployTarget) {
       { type: "user.message", content: [{ type: "text", text: `Distill ${key} using the ${DISTILL_SKILL} skill.` }] },
     ],
   });
-  await db.insert(schema.runs).values({
+  // A concurrent add/regenerate loses the race here (partial unique index on live runs).
+  try {
+    await db.insert(schema.runs).values({
     id: runId,
     subjectId: subject.id,
     skill: DISTILL_SKILL,
@@ -39,7 +42,12 @@ async function startRun(subject: Subject, target: DeployTarget) {
     cmaAgentVersion: stack.agentVersion,
     cmaEnvironmentId: stack.environmentId,
     cmaSkillVersion: stack.skillVersion,
-  });
+    });
+  } catch (err) {
+    await anthropic.beta.sessions.archive(session.id).catch(() => {});
+    if (/runs_one_live_per_subject_skill|unique/i.test(err instanceof Error ? err.message : "")) throw new Error(`${key} is already being distilled.`);
+    throw err;
+  }
   return runId;
 }
 
@@ -55,7 +63,11 @@ export async function regenerateSubject(subjectId: string, target: DeployTarget)
     .from(schema.runs)
     .where(and(eq(schema.runs.subjectId, subjectId), eq(schema.runs.skill, DISTILL_SKILL), ne(schema.runs.status, "ended")));
   for (const r of live) {
-    await anthropic.beta.sessions.archive(r.cmaSessionId).catch(() => {}); // already archived/terminated is fine
+    // If the old session cannot be archived, stop: marking it ended would leave it spending unseen.
+    await anthropic.beta.sessions.archive(r.cmaSessionId).catch((err: unknown) => {
+      if (isNotFound(err) || /archived|terminated/i.test(err instanceof Error ? err.message : "")) return;
+      throw new Error(`Could not archive the current run (${err instanceof Error ? err.message : String(err)}). Try again in a minute.`);
+    });
     await db.update(schema.runs).set({ status: "ended", lastActivityAt: new Date() }).where(eq(schema.runs.id, r.id));
   }
   return startRun(subject, target);

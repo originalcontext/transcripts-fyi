@@ -1,4 +1,4 @@
-import { eq, ne } from "drizzle-orm";
+import { asc, eq, ne } from "drizzle-orm";
 
 import { anthropic, deployTarget } from "@/lib/anthropic";
 import { isNotFound } from "@/lib/cma/errors";
@@ -26,11 +26,13 @@ type Finding =
   | { kind: "stale"; runId: string; minutes: number; sessionStatus: string }
   | { kind: "missing"; runId: string; sessionId: string; error: string }
   | { kind: "unreachable"; runId: string; sessionId: string; error: string }
-  | { kind: "orphan"; sessionId: string; status: string; ageMinutes: number };
+  | { kind: "orphan"; sessionId: string; status: string; ageMinutes: number }
+  | { kind: "deferred"; remaining: number };
 
 export type ReconcileReport = { target: string; liveRuns: number; findings: Finding[]; applied: string[] };
 
-const STALE_MIN = 20;
+const STALE_MIN = 45; // a healthy 20-quarter run takes ~18 min
+const PASS_BUDGET_MS = 45_000; // under the route's maxDuration; whatever is left waits for the next pass
 const ORPHAN_MIN_AGE_MIN = 60; // an orphan younger than this may be a run insert still in flight
 
 export async function reconcile(opts: { apply?: boolean } = {}): Promise<ReconcileReport> {
@@ -38,11 +40,14 @@ export async function reconcile(opts: { apply?: boolean } = {}): Promise<Reconci
   const target = deployTarget();
   const findings: Finding[] = [];
   const applied: string[] = [];
-  const runs = await db.select().from(schema.runs).where(ne(schema.runs.status, "ended"));
-  const known = new Set<string>();
+  const runs = await db.select().from(schema.runs).where(ne(schema.runs.status, "ended")).orderBy(asc(schema.runs.lastActivityAt));
+  const known = new Set(runs.map((r) => r.cmaSessionId));
+  const started = Date.now();
+  let visited = 0;
 
   for (const run of runs) {
-    known.add(run.cmaSessionId);
+    if (Date.now() - started > PASS_BUDGET_MS) break;
+    visited++;
     let session;
     try {
       session = await anthropic.beta.sessions.retrieve(run.cmaSessionId);
@@ -85,7 +90,10 @@ export async function reconcile(opts: { apply?: boolean } = {}): Promise<Reconci
     }
   }
 
+  if (visited < runs.length) findings.push({ kind: "deferred", remaining: runs.length - visited });
+
   for await (const s of anthropic.beta.sessions.list()) {
+    if (Date.now() - started > PASS_BUDGET_MS) break;
     const m = s.metadata ?? {};
     if (m.app !== APP || m.target !== target || s.archived_at || known.has(s.id)) continue;
     const ageMinutes = (Date.now() - Date.parse(s.created_at)) / 60_000;

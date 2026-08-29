@@ -4,7 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
  * One client for the whole app. Reads ANTHROPIC_API_KEY and
  * ANTHROPIC_WEBHOOK_SIGNING_KEY from the environment.
  */
-export const anthropic = new Anthropic();
+export const anthropic = new Anthropic({ maxRetries: 4 });
 
 export type DeployTarget = "prod" | "dev";
 

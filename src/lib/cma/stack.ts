@@ -145,7 +145,7 @@ export async function ensureStack(spec: StackSpec): Promise<Stack> {
   };
 }
 
-/** Skills need `read`; nothing else built-in. Shared by every stack so far. */
+/** Skills need `read`; nothing else built-in. Used by the smoke stack (the distiller adds write/edit for notes). */
 export const READ_ONLY_TOOLSET = {
   type: "agent_toolset_20260401" as const,
   default_config: { enabled: false },

@@ -17,6 +17,9 @@ import { settlePingPongSession } from "@/lib/smoke/ping-pong";
  * decide from its state. Both prod and dev receive every event, so handlers
  * must check the session's `metadata.target` before acting.
  */
+// Two FMP fetches with a retry each, plus three CMA calls, fit comfortably; the default would not.
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   if (!anthropic.webhookKey) {
     console.error("webhook: ANTHROPIC_WEBHOOK_SIGNING_KEY is not set");

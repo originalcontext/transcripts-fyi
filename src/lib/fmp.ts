@@ -6,6 +6,24 @@
 
 const BASE_URL = "https://financialmodelingprep.com/stable";
 
+const TIMEOUT_MS = 10_000;
+
+/** One retry on timeout, network error, or 5xx — this runs inside the webhook, so it must be bounded. */
+async function fetchWithRetry(url: string | URL): Promise<Response> {
+  let last: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(TIMEOUT_MS) });
+      if (res.status < 500) return res;
+      last = new Error(`FMP ${res.status}`);
+    } catch (err) {
+      last = err;
+    }
+    if (attempt === 0) await new Promise((r) => setTimeout(r, 500));
+  }
+  throw last instanceof Error ? last : new Error(String(last));
+}
+
 export class FmpError extends Error {
   status: number;
   /** Request URL with the API key redacted. */
@@ -75,7 +93,7 @@ async function fmpGet(
   }
   url.searchParams.set("apikey", key);
 
-  const res = await fetch(url, { headers: { accept: "application/json" } });
+  const res = await fetchWithRetry(url);
   const safeUrl = redact(url.toString(), key);
   if (!res.ok) {
     const text = await res.text().catch(() => "");

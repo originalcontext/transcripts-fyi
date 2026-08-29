@@ -14,6 +14,7 @@ export const webhookEvents = pgTable("webhook_events", {
 });
 
 // ---- product ----------------------------------------------------------------
+import { sql } from "drizzle-orm";
 import { integer, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 
 /** The universe. A subject is anything distilled longitudinally; today kind='ticker'. */
@@ -29,8 +30,10 @@ export const subjects = pgTable(
   (t) => [uniqueIndex("subjects_kind_key").on(t.kind, t.key)],
 );
 
-/** One long-lived CMA session bound to a subject and a skill. */
-export const runs = pgTable("runs", {
+/** One long-lived CMA session bound to a subject and a skill. At most one live (non-ended) run per subject × skill — enforced by a partial unique index. */
+export const runs = pgTable(
+  "runs",
+  {
   id: text("id").primaryKey(),
   subjectId: text("subject_id").notNull().references(() => subjects.id),
   skill: text("skill").notNull(),
@@ -45,7 +48,9 @@ export const runs = pgTable("runs", {
   listCostCents: integer("list_cost_cents").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   lastActivityAt: timestamp("last_activity_at", { withTimezone: true }).notNull().defaultNow(),
-});
+  },
+  (t) => [uniqueIndex("runs_one_live_per_subject_skill").on(t.subjectId, t.skill).where(sql`${t.status} <> 'ended'`)],
+);
 
 export type RunStatus = "working" | "idle" | "budget_reached" | "ended";
 

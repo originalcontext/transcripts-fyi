@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "runs_one_live_per_subject_skill" ON "runs" USING btree ("subject_id","skill") WHERE "runs"."status" <> 'ended';
