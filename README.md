@@ -36,7 +36,7 @@ Prod: https://transcripts.fyi · Dev: `npm run dev` + ngrok → `/webhook`
 
 ## Future ideas
 
-- **Other universes.** Earnings transcripts were the first demo, not necessarily the best. Explore transcript/document universes in science and healthcare (trial readouts, FDA advisory-committee transcripts, grand rounds, conference Q&A) — each is a skill plus a skill-specific toolset on the same `subjects` / `runs` / `artifacts` model.
+- **Other universes.** Earnings transcripts were the first demo, not necessarily the best. Explore transcript/document universes in science and healthcare (trial readouts, FDA advisory-committee transcripts, grand rounds, conference Q&A) — each is a skill plus a skill-specific toolset on the same `subjects` / `runs` / `artifacts` model. Researched shortlist with obtainability checks: `docs/ideas/transcript-universes.md`.
 
 ---
 
