@@ -1,5 +1,6 @@
-import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
+
 import { AutoRefresh } from "@/components/app/auto-refresh";
 import { Sausage } from "@/components/app/sausage";
 import { Shell } from "@/components/app/shell";

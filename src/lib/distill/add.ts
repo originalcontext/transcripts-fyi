@@ -1,5 +1,7 @@
 import crypto from "node:crypto";
+
 import { and, eq, ne } from "drizzle-orm";
+
 import { anthropic, type DeployTarget } from "@/lib/anthropic";
 import { db, schema } from "@/lib/db";
 import { activeRun, getSubject } from "@/lib/distill/queries";
@@ -11,7 +13,7 @@ const RUN_BUDGET_CENTS = 1000; // $10 per run
 type Subject = typeof schema.subjects.$inferSelect;
 
 /** Start a fresh distillation run on the current stack (skill + agent at "latest"). */
-export async function startRun(subject: Subject, target: DeployTarget) {
+async function startRun(subject: Subject, target: DeployTarget) {
   const key = subject.key;
   const stack = await ensureDistillStack(target);
   const runId = crypto.randomUUID();

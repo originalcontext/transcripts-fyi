@@ -1,12 +1,13 @@
 import crypto from "node:crypto";
+
 import { anthropic, type DeployTarget } from "@/lib/anthropic";
 import { listAllEvents, SMOKE_KIND } from "@/lib/smoke/ping-pong";
 import { FETCH_TRANSCRIPT_TOOL, PONG_TOOL, RENDER_SUMMARY_TOOL } from "@/lib/smoke/tools";
 
-export const SMOKE_SYMBOL = "NVDA";
+const SMOKE_SYMBOL = "NVDA";
 
 /** The whole task in one user message — no extra skill needed yet. */
-export function smokeMessage(nonce: string) {
+function smokeMessage(nonce: string) {
   return `ping ${nonce}
 
 After you have replied to the ping, continue with one more task:
@@ -34,7 +35,7 @@ export async function startSmokeSession(opts: {
   return { sessionId: session.id, nonce };
 }
 
-export type SmokeCheck = { label: string; ok: boolean };
+type SmokeCheck = { label: string; ok: boolean };
 export type SmokeInspection = {
   sessionId: string;
   status: string;

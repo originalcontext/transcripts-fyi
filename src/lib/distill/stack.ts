@@ -5,7 +5,7 @@ import { DISTILL_TOOLS } from "@/lib/distill/tools";
 
 export const APP = "tfyi";
 
-export const distillSpec = (target: DeployTarget): StackSpec => ({
+const distillSpec = (target: DeployTarget): StackSpec => ({
   app: APP,
   role: "distiller",
   target,

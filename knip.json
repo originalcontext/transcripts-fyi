@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "scripts/**/*.ts",
+    "vitest.config.ts"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "scripts/**/*.ts"
+  ],
+  "ignore": [
+    "src/components/ui/**",
+    "src/lib/fmp.ts",
+    "src/lib/massive.ts"
+  ],
+  "ignoreDependencies": [
+    "tw-animate-css",
+    "tailwindcss",
+    "shadcn"
+  ]
+}

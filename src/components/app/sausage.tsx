@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { bumpBudgetAction, regenerateAllAction, regenerateSubjectAction } from "@/app/s/actions";
 import { Button } from "@/components/ui/button";
 

@@ -6,8 +6,8 @@
  *
  * Observes only — the webhook handler answers the tool call.
  */
-import { ensureSmokeStack } from "@/lib/smoke/stack";
 import { startSmokeSession, waitForSmokeSession } from "@/lib/smoke/session";
+import { ensureSmokeStack } from "@/lib/smoke/stack";
 
 async function main() {
   const i = process.argv.indexOf("--target");

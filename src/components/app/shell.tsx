@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { logoutAction } from "@/app/login/actions";
 import { AddSubject } from "@/components/app/add-subject";
 import { Badge } from "@/components/ui/badge";

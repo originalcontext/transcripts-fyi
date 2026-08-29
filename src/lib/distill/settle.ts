@@ -1,15 +1,15 @@
 import { eq } from "drizzle-orm";
+
 import { anthropic, deployTarget } from "@/lib/anthropic";
+import { deriveRunStatus, type RunStatus, unansweredToolUses } from "@/lib/cma/events";
 import { db, schema } from "@/lib/db";
 import { APP } from "@/lib/distill/stack";
 import { runDistillTool } from "@/lib/distill/tools";
-import { listAllEvents, unansweredToolUses } from "@/lib/smoke/ping-pong";
+import { listAllEvents } from "@/lib/smoke/ping-pong";
 
 export type DistillSettle =
   | { action: "skipped"; reason: "not-ours" | "other-target" | "unknown-run" }
   | { action: "synced"; runId: string; status: RunStatus; tools: string[] };
-
-type RunStatus = typeof schema.runs.$inferSelect["status"];
 
 /**
  * Webhook entry point for distiller sessions — the single seam between CMA and
@@ -46,15 +46,7 @@ export async function settleDistillSession(sessionId: string): Promise<DistillSe
   );
   if (results.length > 0) await anthropic.beta.sessions.events.send(sessionId, { events: results });
 
-  // Derive status from the resource, not from which webhook arrived.
-  const idle = events.filter((e) => e.type === "session.status_idle").at(-1);
-  const stop = idle?.type === "session.status_idle" ? idle.stop_reason.type : null;
-  let status: RunStatus = "working";
-  if (session.status === "terminated") status = "ended";
-  else if (results.length > 0) status = "working"; // we just answered; the agent resumes
-  else if (session.status === "idle" && stop === "budget_reached") status = "budget_reached";
-  else if (session.status === "idle" && stop === "retries_exhausted") status = "ended";
-  else if (session.status === "idle" && stop === "end_turn") status = "idle";
+  const status = deriveRunStatus(session.status, events, results.length > 0);
 
   await db
     .update(schema.runs)

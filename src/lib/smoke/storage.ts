@@ -1,10 +1,11 @@
 import { count, sql } from "drizzle-orm";
+
 import { db, schema } from "@/lib/db";
 import { key, redis } from "@/lib/redis";
 
 export type StorageCheck = { name: string; ok: boolean; detail: string };
 
-export async function checkPostgres(): Promise<StorageCheck> {
+async function checkPostgres(): Promise<StorageCheck> {
   try {
     const { rows: [{ now }] } = await db.execute<{ now: string }>(sql`select now()::text as now`);
     const [{ n }] = await db.select({ n: count() }).from(schema.webhookEvents);
@@ -15,7 +16,7 @@ export async function checkPostgres(): Promise<StorageCheck> {
   }
 }
 
-export async function checkRedis(): Promise<StorageCheck> {
+async function checkRedis(): Promise<StorageCheck> {
   try {
     const k = key("smoke", "hits");
     const hits = await redis.incr(k);

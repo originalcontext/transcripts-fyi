@@ -1,6 +1,5 @@
 import type { DeployTarget } from "@/lib/anthropic";
 import { ensureStack, findStack, READ_ONLY_TOOLSET, type StackSpec } from "@/lib/cma/stack";
-import { SMOKE_KIND } from "@/lib/smoke/ping-pong";
 import { SKILL_MD, SKILL_NAME } from "@/lib/smoke/skill";
 import { SMOKE_TOOLS } from "@/lib/smoke/tools";
 
@@ -39,6 +38,3 @@ const shape = (target: DeployTarget, s: Awaited<ReturnType<typeof findStack>>): 
 
 export const findSmokeStack = async (target: DeployTarget) => shape(target, await findStack(smokeSpec(target)));
 export const ensureSmokeStack = async (target: DeployTarget) => shape(target, await ensureStack(smokeSpec(target)));
-
-// `SMOKE_KIND` stays the session-metadata marker the settler keys on.
-export { SMOKE_KIND };

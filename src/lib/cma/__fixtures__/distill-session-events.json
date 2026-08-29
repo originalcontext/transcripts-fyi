@@ -1,0 +1,938 @@
+[
+ {
+  "id": "sevt_017fQQ77HW69noan7R54bYbW",
+  "processed_at": "2026-08-29T15:54:59.659912Z",
+  "type": "session.status_running"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_012HTjZvzEnGwFLynqF7ZYiY",
+  "processed_at": "2026-08-29T15:54:59.925779Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "type": "session.thread_status_running"
+ },
+ {
+  "content": [
+   {
+    "text": "Distill NVDA using the earnings-transcripts skill.",
+    "type": "text"
+   }
+  ],
+  "id": "sevt_018VdkpEwfJSpFom5fyf3AmH",
+  "processed_at": "2026-08-29T15:55:00.008961Z",
+  "type": "user.message"
+ },
+ {
+  "id": "sevt_01VvqsRTJuQiWv5eteb8c68g",
+  "processed_at": "2026-08-29T15:55:00.008962Z",
+  "type": "span.model_request_start"
+ },
+ {
+  "content": [
+   {
+    "text": "I'll start by reading the skill file.",
+    "type": "text"
+   }
+  ],
+  "id": "sevt_01FDdYVAqgeH97CePkzEgC7e",
+  "processed_at": "2026-08-29T15:55:01.476306Z",
+  "type": "agent.message"
+ },
+ {
+  "evaluated_permission": "allow",
+  "id": "sevt_013eTdc39Fi1EVtjBk3PBqsr",
+  "input": {
+   "file_path": "/workspace/skills/earnings-transcripts/SKILL.md"
+  },
+  "name": "read",
+  "processed_at": "2026-08-29T15:55:01.476307Z",
+  "type": "agent.tool_use"
+ },
+ {
+  "id": "sevt_01CUebofKbSkF9wKszu8oSzr",
+  "is_error": false,
+  "model_request_start_id": "sevt_01VvqsRTJuQiWv5eteb8c68g",
+  "model_usage": {
+   "cache_creation_input_tokens": 3157,
+   "cache_read_input_tokens": 0,
+   "input_tokens": 2,
+   "output_tokens": 82
+  },
+  "processed_at": "2026-08-29T15:55:01.476308Z",
+  "type": "span.model_request_end"
+ },
+ {
+  "content": [
+   {
+    "text": "1\t---\n2\tname: earnings-transcripts\n3\tdescription: Longitudinally distill a public company's recent earnings-call transcr…[2049 chars]",
+    "type": "text"
+   }
+  ],
+  "id": "sevt_017KFHTXJzdooDWTMgxqLPoh",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:04.394444Z",
+  "tool_use_id": "sevt_013eTdc39Fi1EVtjBk3PBqsr",
+  "type": "agent.tool_result"
+ },
+ {
+  "id": "sevt_01MfdCnNUmTm7hbGYAuTUm4u",
+  "processed_at": "2026-08-29T15:55:04.479770Z",
+  "type": "span.model_request_start"
+ },
+ {
+  "id": "sevt_01K4FZGrm2pbn4gnYXAJS4MM",
+  "processed_at": "2026-08-29T15:55:05.748663Z",
+  "type": "agent.thinking"
+ },
+ {
+  "id": "sevt_01PPNXQJEkDA9uez9phYjuWT",
+  "input": {
+   "symbol": "NVDA"
+  },
+  "name": "list_transcripts",
+  "processed_at": "2026-08-29T15:55:05.816434Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_01YCjbVbJ9KvLu3KQdTFPBAj",
+  "is_error": false,
+  "model_request_start_id": "sevt_01MfdCnNUmTm7hbGYAuTUm4u",
+  "model_usage": {
+   "cache_creation_input_tokens": 868,
+   "cache_read_input_tokens": 3157,
+   "input_tokens": 2,
+   "output_tokens": 98
+  },
+  "processed_at": "2026-08-29T15:55:05.816435Z",
+  "type": "span.model_request_end"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01NpYjEwQX5euRChiJTnSnYf",
+  "processed_at": "2026-08-29T15:55:05.927115Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_01PPNXQJEkDA9uez9phYjuWT"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.thread_status_idle"
+ },
+ {
+  "budget": {
+   "max_list_cost": {
+    "amount": "1000",
+    "currency": "USD"
+   },
+   "type": "limit"
+  },
+  "id": "sevt_01Gd7G38AbQFAeRnhBCH2FnU",
+  "processed_at": "2026-08-29T15:55:05.927116Z",
+  "type": "session.usage",
+  "usage": {
+   "active_seconds": 6.077,
+   "cache_creation": {
+    "ephemeral_1h_input_tokens": 0,
+    "ephemeral_5m_input_tokens": 4025
+   },
+   "cache_read_input_tokens": 3157,
+   "input_tokens": 4,
+   "list_cost": {
+    "amount": "3",
+    "currency": "USD"
+   },
+   "output_tokens": 180,
+   "server_tool_use": {
+    "web_fetch_requests": 0,
+    "web_search_requests": 0
+   }
+  }
+ },
+ {
+  "id": "sevt_01YN4BLqhNcnU2ja1VQWrmeg",
+  "processed_at": "2026-08-29T15:55:05.927117Z",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_01PPNXQJEkDA9uez9phYjuWT"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.status_idle"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"symbol\":\"NVDA\",\"transcripts\":[{\"year\":2027,\"quarter\":2,\"date\":\"2026-08-26\"},{\"year\":2027,\"quarter\":1,\"date\":\"2026-05-2…[1873 chars]",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_01PPNXQJEkDA9uez9phYjuWT",
+  "id": "sevt_01AgUM5Gc2W8ASkiFg6kHfhR",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:07.110766Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "id": "sevt_013NMGvHKWwDvuVaCBGhVk8A",
+  "processed_at": "2026-08-29T15:55:07.189445Z",
+  "type": "session.status_running"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01FCPLCwYuzdbPKHYB1kB9YE",
+  "processed_at": "2026-08-29T15:55:07.189446Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "type": "session.thread_status_running"
+ },
+ {
+  "id": "sevt_01TCtcCaBGzDGZp477L2mBDb",
+  "processed_at": "2026-08-29T15:55:07.284727Z",
+  "type": "span.model_request_start"
+ },
+ {
+  "content": [
+   {
+    "text": "I'll fetch the last eight quarters, two at a time.",
+    "type": "text"
+   }
+  ],
+  "id": "sevt_01RzZiYM7Z2gqLuNPGumu1P4",
+  "processed_at": "2026-08-29T15:55:09.651087Z",
+  "type": "agent.message"
+ },
+ {
+  "id": "sevt_01YZbcsbnK4p3jV7zj7zPxm4",
+  "input": {
+   "quarter": 2,
+   "symbol": "NVDA",
+   "year": 2027
+  },
+  "name": "fetch_transcript",
+  "processed_at": "2026-08-29T15:55:09.651088Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_01QAFoL4fCC7x4sfwYuSLrjy",
+  "input": {
+   "quarter": 1,
+   "symbol": "NVDA",
+   "year": 2027
+  },
+  "name": "fetch_transcript",
+  "processed_at": "2026-08-29T15:55:09.651089Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_01N3jARooyiQo4eHm2gN5fmh",
+  "is_error": false,
+  "model_request_start_id": "sevt_01TCtcCaBGzDGZp477L2mBDb",
+  "model_usage": {
+   "cache_creation_input_tokens": 1163,
+   "cache_read_input_tokens": 4025,
+   "input_tokens": 2,
+   "output_tokens": 219
+  },
+  "processed_at": "2026-08-29T15:55:09.651090Z",
+  "type": "span.model_request_end"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01NBppw6gBt1yL5YXsb4dNhs",
+  "processed_at": "2026-08-29T15:55:09.766965Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_01YZbcsbnK4p3jV7zj7zPxm4",
+    "sevt_01QAFoL4fCC7x4sfwYuSLrjy"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.thread_status_idle"
+ },
+ {
+  "budget": {
+   "max_list_cost": {
+    "amount": "1000",
+    "currency": "USD"
+   },
+   "type": "limit"
+  },
+  "id": "sevt_015rQaTw6AZmFpQhbVGD3Pjm",
+  "processed_at": "2026-08-29T15:55:09.766966Z",
+  "type": "session.usage",
+  "usage": {
+   "active_seconds": 8.885,
+   "cache_creation": {
+    "ephemeral_1h_input_tokens": 0,
+    "ephemeral_5m_input_tokens": 5188
+   },
+   "cache_read_input_tokens": 7182,
+   "input_tokens": 6,
+   "list_cost": {
+    "amount": "5",
+    "currency": "USD"
+   },
+   "output_tokens": 399,
+   "server_tool_use": {
+    "web_fetch_requests": 0,
+    "web_search_requests": 0
+   }
+  }
+ },
+ {
+  "id": "sevt_01M1daNyi3w8qFTEDpuMBx9h",
+  "processed_at": "2026-08-29T15:55:09.766967Z",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_01YZbcsbnK4p3jV7zj7zPxm4",
+    "sevt_01QAFoL4fCC7x4sfwYuSLrjy"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.status_idle"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"symbol\":\"NVDA\",\"year\":2027,\"quarter\":2,\"date\":\"2026-08-26\",\"content\":\"Operator: Good afternoon. My name is Tiffany, an…[46439 chars]",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_01YZbcsbnK4p3jV7zj7zPxm4",
+  "id": "sevt_01W8TwLPCcH9cHzBc6TJ2GLj",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:10.943560Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"symbol\":\"NVDA\",\"year\":2027,\"quarter\":1,\"date\":\"2026-05-20\",\"content\":\"Operator: Good afternoon. My name is Sarah, and …[46950 chars]",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_01QAFoL4fCC7x4sfwYuSLrjy",
+  "id": "sevt_01U2rKAkjH17BDRj13n4sATw",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:11.025518Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "id": "sevt_01HhJU1jXkF8EcPWz9Gc5WJ8",
+  "processed_at": "2026-08-29T15:55:11.103878Z",
+  "type": "session.status_running"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01RhanA5MEvXaStgNm92it5Y",
+  "processed_at": "2026-08-29T15:55:11.103879Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "type": "session.thread_status_running"
+ },
+ {
+  "id": "sevt_013YKGiWb7guFzGSSiMSRYbP",
+  "processed_at": "2026-08-29T15:55:11.219330Z",
+  "type": "span.model_request_start"
+ },
+ {
+  "id": "sevt_01MdHxGUrFKsWydhBJwdsLQU",
+  "input": {
+   "quarter": 4,
+   "symbol": "NVDA",
+   "year": 2026
+  },
+  "name": "fetch_transcript",
+  "processed_at": "2026-08-29T15:55:13.682915Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_01RGCYZ3qc3dQzF259bvWM2k",
+  "input": {
+   "quarter": 3,
+   "symbol": "NVDA",
+   "year": 2026
+  },
+  "name": "fetch_transcript",
+  "processed_at": "2026-08-29T15:55:13.682916Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_01GGPTfNxLx61kwX2FhpH98k",
+  "is_error": false,
+  "model_request_start_id": "sevt_013YKGiWb7guFzGSSiMSRYbP",
+  "model_usage": {
+   "cache_creation_input_tokens": 30026,
+   "cache_read_input_tokens": 5188,
+   "input_tokens": 2,
+   "output_tokens": 199
+  },
+  "processed_at": "2026-08-29T15:55:13.682917Z",
+  "type": "span.model_request_end"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01RTZKo7kBAsuRDS11JFt3Wq",
+  "processed_at": "2026-08-29T15:55:13.809476Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_01MdHxGUrFKsWydhBJwdsLQU",
+    "sevt_01RGCYZ3qc3dQzF259bvWM2k"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.thread_status_idle"
+ },
+ {
+  "budget": {
+   "max_list_cost": {
+    "amount": "1000",
+    "currency": "USD"
+   },
+   "type": "limit"
+  },
+  "id": "sevt_01AmdjikMC4cG1yEXKAf5Y8t",
+  "processed_at": "2026-08-29T15:55:13.809477Z",
+  "type": "session.usage",
+  "usage": {
+   "active_seconds": 11.802,
+   "cache_creation": {
+    "ephemeral_1h_input_tokens": 0,
+    "ephemeral_5m_input_tokens": 35214
+   },
+   "cache_read_input_tokens": 12370,
+   "input_tokens": 8,
+   "list_cost": {
+    "amount": "24",
+    "currency": "USD"
+   },
+   "output_tokens": 598,
+   "server_tool_use": {
+    "web_fetch_requests": 0,
+    "web_search_requests": 0
+   }
+  }
+ },
+ {
+  "id": "sevt_01MLvppkism4qdpzXfdXPes2",
+  "processed_at": "2026-08-29T15:55:13.809478Z",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_01MdHxGUrFKsWydhBJwdsLQU",
+    "sevt_01RGCYZ3qc3dQzF259bvWM2k"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.status_idle"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"symbol\":\"NVDA\",\"year\":2026,\"quarter\":4,\"date\":\"2026-02-25\",\"content\":\"Operator: Good afternoon. My name is Sarah, and …[52117 chars]",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_01MdHxGUrFKsWydhBJwdsLQU",
+  "id": "sevt_01Xxp9Hm8Yp1Nq1F5mQx5ou2",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:14.894125Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"symbol\":\"NVDA\",\"year\":2026,\"quarter\":3,\"date\":\"2025-11-19\",\"content\":\"Sarah: Good afternoon. My name is Sarah, and I w…[52394 chars]",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_01RGCYZ3qc3dQzF259bvWM2k",
+  "id": "sevt_01XVknUpgXgdL6QfiBbyAU3e",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:14.953605Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "id": "sevt_01Vmz8em37MaDUJMSng6gEF6",
+  "processed_at": "2026-08-29T15:55:15.029651Z",
+  "type": "session.status_running"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_013g22eq8wEdmeKDq4N76GBQ",
+  "processed_at": "2026-08-29T15:55:15.029652Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "type": "session.thread_status_running"
+ },
+ {
+  "id": "sevt_015RUqe2DUzBtMjxo8uSonfA",
+  "processed_at": "2026-08-29T15:55:15.127783Z",
+  "type": "span.model_request_start"
+ },
+ {
+  "id": "sevt_017Ycjbx8jCnuwj9iEBixFgp",
+  "input": {
+   "quarter": 2,
+   "symbol": "NVDA",
+   "year": 2026
+  },
+  "name": "fetch_transcript",
+  "processed_at": "2026-08-29T15:55:17.834594Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_01TEEjBuyztvW8ZawRB77egy",
+  "input": {
+   "quarter": 1,
+   "symbol": "NVDA",
+   "year": 2026
+  },
+  "name": "fetch_transcript",
+  "processed_at": "2026-08-29T15:55:17.834595Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_01Ag1W5ZgsHiYFGjU9nNwCac",
+  "is_error": false,
+  "model_request_start_id": "sevt_015RUqe2DUzBtMjxo8uSonfA",
+  "model_usage": {
+   "cache_creation_input_tokens": 33234,
+   "cache_read_input_tokens": 35214,
+   "input_tokens": 2,
+   "output_tokens": 199
+  },
+  "processed_at": "2026-08-29T15:55:17.834596Z",
+  "type": "span.model_request_end"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_014Yf38vWeu9Z6YotARWoUzn",
+  "processed_at": "2026-08-29T15:55:17.974820Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_017Ycjbx8jCnuwj9iEBixFgp",
+    "sevt_01TEEjBuyztvW8ZawRB77egy"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.thread_status_idle"
+ },
+ {
+  "budget": {
+   "max_list_cost": {
+    "amount": "1000",
+    "currency": "USD"
+   },
+   "type": "limit"
+  },
+  "id": "sevt_01JKdFdkAvF4pdUkwwX5mbmA",
+  "processed_at": "2026-08-29T15:55:17.974821Z",
+  "type": "session.usage",
+  "usage": {
+   "active_seconds": 14.92,
+   "cache_creation": {
+    "ephemeral_1h_input_tokens": 0,
+    "ephemeral_5m_input_tokens": 68448
+   },
+   "cache_read_input_tokens": 47584,
+   "input_tokens": 10,
+   "list_cost": {
+    "amount": "47",
+    "currency": "USD"
+   },
+   "output_tokens": 797,
+   "server_tool_use": {
+    "web_fetch_requests": 0,
+    "web_search_requests": 0
+   }
+  }
+ },
+ {
+  "id": "sevt_01BRfd5H4HsTWoqPsZPS3rAc",
+  "processed_at": "2026-08-29T15:55:17.974822Z",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_017Ycjbx8jCnuwj9iEBixFgp",
+    "sevt_01TEEjBuyztvW8ZawRB77egy"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.status_idle"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"symbol\":\"NVDA\",\"year\":2026,\"quarter\":2,\"date\":\"2025-08-27\",\"content\":\"Sarah: Good afternoon. My name is Sarah, and I w…[45247 chars]",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_017Ycjbx8jCnuwj9iEBixFgp",
+  "id": "sevt_012jVDDqXW8YMBX9tt7mP5y8",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:19.138204Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"symbol\":\"NVDA\",\"year\":2026,\"quarter\":1,\"date\":\"2025-05-28\",\"content\":\"Sarah: Good afternoon. My name is Sarah, and I w…[46688 chars]",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_01TEEjBuyztvW8ZawRB77egy",
+  "id": "sevt_01VQSv1ifcnixGDGRcM3K2Qm",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:19.203903Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "id": "sevt_01UwKmSfjRNqsQNmzFGVHpRj",
+  "processed_at": "2026-08-29T15:55:19.290639Z",
+  "type": "session.status_running"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01PEAXLN855L8MwFgAXA4seq",
+  "processed_at": "2026-08-29T15:55:19.290640Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "type": "session.thread_status_running"
+ },
+ {
+  "id": "sevt_011KcL928zG7cnD8dDyfSAMw",
+  "processed_at": "2026-08-29T15:55:19.396798Z",
+  "type": "span.model_request_start"
+ },
+ {
+  "id": "sevt_011xPDgZ2n3tWQoZp9bThZ7K",
+  "input": {
+   "quarter": 4,
+   "symbol": "NVDA",
+   "year": 2025
+  },
+  "name": "fetch_transcript",
+  "processed_at": "2026-08-29T15:55:22.245732Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_01HpH8tgdMpTd1JXvBvphSSs",
+  "input": {
+   "quarter": 3,
+   "symbol": "NVDA",
+   "year": 2025
+  },
+  "name": "fetch_transcript",
+  "processed_at": "2026-08-29T15:55:22.245733Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_01GcUyZyjSp6PRoZLTnydgEx",
+  "is_error": false,
+  "model_request_start_id": "sevt_011KcL928zG7cnD8dDyfSAMw",
+  "model_usage": {
+   "cache_creation_input_tokens": 29975,
+   "cache_read_input_tokens": 68448,
+   "input_tokens": 2,
+   "output_tokens": 199
+  },
+  "processed_at": "2026-08-29T15:55:22.245734Z",
+  "type": "span.model_request_end"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01EnqThyk8nbwKx4p1wPSjkk",
+  "processed_at": "2026-08-29T15:55:22.354450Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_011xPDgZ2n3tWQoZp9bThZ7K",
+    "sevt_01HpH8tgdMpTd1JXvBvphSSs"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.thread_status_idle"
+ },
+ {
+  "budget": {
+   "max_list_cost": {
+    "amount": "1000",
+    "currency": "USD"
+   },
+   "type": "limit"
+  },
+  "id": "sevt_01BwPWJR2Hkp4ydEtB9FABzH",
+  "processed_at": "2026-08-29T15:55:22.354451Z",
+  "type": "session.usage",
+  "usage": {
+   "active_seconds": 18.231,
+   "cache_creation": {
+    "ephemeral_1h_input_tokens": 0,
+    "ephemeral_5m_input_tokens": 98423
+   },
+   "cache_read_input_tokens": 116032,
+   "input_tokens": 12,
+   "list_cost": {
+    "amount": "70",
+    "currency": "USD"
+   },
+   "output_tokens": 996,
+   "server_tool_use": {
+    "web_fetch_requests": 0,
+    "web_search_requests": 0
+   }
+  }
+ },
+ {
+  "id": "sevt_01BVoTVpKc3ThA9uYeuebYFz",
+  "processed_at": "2026-08-29T15:55:22.354452Z",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_011xPDgZ2n3tWQoZp9bThZ7K",
+    "sevt_01HpH8tgdMpTd1JXvBvphSSs"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.status_idle"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"symbol\":\"NVDA\",\"year\":2025,\"quarter\":4,\"date\":\"2025-02-26\",\"content\":\"Christa: Good afternoon. My name is Christa, and…[46970 chars]",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_011xPDgZ2n3tWQoZp9bThZ7K",
+  "id": "sevt_01JDhSjMhKwPLmSzAuFyMr2q",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:23.581464Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"symbol\":\"NVDA\",\"year\":2025,\"quarter\":3,\"date\":\"2024-11-20\",\"content\":\"Operator: Good afternoon. My name is Joel, and I…[48883 chars]",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_01HpH8tgdMpTd1JXvBvphSSs",
+  "id": "sevt_0114bHsCeKMDnqtG7epAFUSK",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:55:23.645031Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "id": "sevt_019749QUKhm2a8vRaMzphxC5",
+  "processed_at": "2026-08-29T15:55:23.723928Z",
+  "type": "session.status_running"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01WamVsxeqcscxUMvc3Y8pdr",
+  "processed_at": "2026-08-29T15:55:23.723929Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "type": "session.thread_status_running"
+ },
+ {
+  "id": "sevt_01DMKrcoR8Zpcx2sR4qptrau",
+  "processed_at": "2026-08-29T15:55:23.829400Z",
+  "type": "span.model_request_start"
+ },
+ {
+  "id": "sevt_01PtMFCUCMehDfeXfLuRho3a",
+  "processed_at": "2026-08-29T15:56:27.627480Z",
+  "type": "agent.thinking"
+ },
+ {
+  "id": "sevt_01MpCc6oxnrKubkqGpcuoXNK",
+  "input": {
+   "html": "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initia…[15944 chars]",
+   "meta": {
+    "date_range": "2024-11-20 to 2026-08-26",
+    "quarters": [
+     "Q2 FY2027",
+     "Q1 FY2027",
+     "Q4 FY2026",
+     "Q3 FY2026",
+     "Q2 FY2026",
+     "Q1 FY2026",
+     "Q4 FY2025",
+     "Q3 FY2025"
+    ],
+    "symbol": "NVDA",
+    "word_count": 1650
+   }
+  },
+  "name": "post_artifact",
+  "processed_at": "2026-08-29T15:57:50.491591Z",
+  "type": "agent.custom_tool_use"
+ },
+ {
+  "id": "sevt_012qcyJd5XDsnXKxqr8eCaiW",
+  "is_error": false,
+  "model_request_start_id": "sevt_01DMKrcoR8Zpcx2sR4qptrau",
+  "model_usage": {
+   "cache_creation_input_tokens": 30834,
+   "cache_read_input_tokens": 98423,
+   "input_tokens": 2,
+   "output_tokens": 12674
+  },
+  "processed_at": "2026-08-29T15:57:50.491592Z",
+  "type": "span.model_request_end"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01N49KNCqyXitf2VRZ3uFYG8",
+  "processed_at": "2026-08-29T15:57:50.603052Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_01MpCc6oxnrKubkqGpcuoXNK"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.thread_status_idle"
+ },
+ {
+  "budget": {
+   "max_list_cost": {
+    "amount": "1000",
+    "currency": "USD"
+   },
+   "type": "limit"
+  },
+  "id": "sevt_01Q32pDRaGjGRrDcgwFNJXVH",
+  "processed_at": "2026-08-29T15:57:50.603053Z",
+  "type": "session.usage",
+  "usage": {
+   "active_seconds": 165.338,
+   "cache_creation": {
+    "ephemeral_1h_input_tokens": 0,
+    "ephemeral_5m_input_tokens": 129257
+   },
+   "cache_read_input_tokens": 214455,
+   "input_tokens": 14,
+   "list_cost": {
+    "amount": "126",
+    "currency": "USD"
+   },
+   "output_tokens": 13670,
+   "server_tool_use": {
+    "web_fetch_requests": 0,
+    "web_search_requests": 0
+   }
+  }
+ },
+ {
+  "id": "sevt_01SE3V7WRsbDLGSbFR9oaeUM",
+  "processed_at": "2026-08-29T15:57:50.603054Z",
+  "stop_reason": {
+   "event_ids": [
+    "sevt_01MpCc6oxnrKubkqGpcuoXNK"
+   ],
+   "type": "requires_action"
+  },
+  "type": "session.status_idle"
+ },
+ {
+  "content": [
+   {
+    "text": "{\"ok\":true,\"chars\":15944}",
+    "type": "text"
+   }
+  ],
+  "custom_tool_use_id": "sevt_01MpCc6oxnrKubkqGpcuoXNK",
+  "id": "sevt_01GXKzmuLE4CaJgkaktiSx6V",
+  "is_error": false,
+  "processed_at": "2026-08-29T15:57:51.729839Z",
+  "type": "user.custom_tool_result"
+ },
+ {
+  "id": "sevt_01EfC59bu6sMZ8Fw4qeuFiYE",
+  "processed_at": "2026-08-29T15:57:51.819245Z",
+  "type": "session.status_running"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01Hcd18bEghbbzt3pERngxKa",
+  "processed_at": "2026-08-29T15:57:51.819246Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "type": "session.thread_status_running"
+ },
+ {
+  "id": "sevt_017eM2mJQrLLnFm4vbqr1mhF",
+  "processed_at": "2026-08-29T15:57:51.927176Z",
+  "type": "span.model_request_start"
+ },
+ {
+  "content": [
+   {
+    "text": "posted NVDA 8 quarters",
+    "type": "text"
+   }
+  ],
+  "id": "sevt_01F2r4yss4njpMAiYNTWGckp",
+  "processed_at": "2026-08-29T15:57:53.055574Z",
+  "type": "agent.message"
+ },
+ {
+  "id": "sevt_01V2XfNqQT7m9LKmya5dUHgx",
+  "is_error": false,
+  "model_request_start_id": "sevt_017eM2mJQrLLnFm4vbqr1mhF",
+  "model_usage": {
+   "cache_creation_input_tokens": 12693,
+   "cache_read_input_tokens": 129257,
+   "input_tokens": 2,
+   "output_tokens": 14
+  },
+  "processed_at": "2026-08-29T15:57:53.055575Z",
+  "type": "span.model_request_end"
+ },
+ {
+  "agent_name": "transcripts.fyi distiller (dev)",
+  "id": "sevt_01CGdjkNsGnnsHF9iifqdPdN",
+  "processed_at": "2026-08-29T15:57:53.174756Z",
+  "session_thread_id": "sthr_01Q4BsynB5Ya9zoCikDtZ2bm",
+  "stop_reason": {
+   "type": "end_turn"
+  },
+  "type": "session.thread_status_idle"
+ },
+ {
+  "budget": {
+   "max_list_cost": {
+    "amount": "1000",
+    "currency": "USD"
+   },
+   "type": "limit"
+  },
+  "id": "sevt_01R6FBTmhxVGYV2ciEkKzkTv",
+  "processed_at": "2026-08-29T15:57:53.174757Z",
+  "type": "session.usage",
+  "usage": {
+   "active_seconds": 166.909,
+   "cache_creation": {
+    "ephemeral_1h_input_tokens": 0,
+    "ephemeral_5m_input_tokens": 141950
+   },
+   "cache_read_input_tokens": 343712,
+   "input_tokens": 16,
+   "list_cost": {
+    "amount": "140",
+    "currency": "USD"
+   },
+   "output_tokens": 13684,
+   "server_tool_use": {
+    "web_fetch_requests": 0,
+    "web_search_requests": 0
+   }
+  }
+ },
+ {
+  "id": "sevt_01JVMgsTtJxHjoCPm3y7wMB1",
+  "processed_at": "2026-08-29T15:57:53.174758Z",
+  "stop_reason": {
+   "type": "end_turn"
+  },
+  "type": "session.status_idle"
+ }
+]

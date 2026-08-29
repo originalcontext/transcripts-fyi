@@ -1,5 +1,5 @@
-import type Anthropic from "@anthropic-ai/sdk";
 import { anthropic, deployTarget } from "@/lib/anthropic";
+import { type SessionEvent, unansweredToolUses } from "@/lib/cma/events";
 import { runTool } from "@/lib/smoke/tools";
 
 /**
@@ -15,25 +15,11 @@ import { runTool } from "@/lib/smoke/tools";
  */
 
 export const SMOKE_KIND = "ping-pong";
-export { PONG_TOOL } from "@/lib/smoke/tools";
-
-type SessionEvent = Anthropic.Beta.Sessions.BetaManagedAgentsSessionEvent;
-type CustomToolUse = Extract<SessionEvent, { type: "agent.custom_tool_use" }>;
 
 export async function listAllEvents(sessionId: string): Promise<SessionEvent[]> {
   const events: SessionEvent[] = [];
   for await (const e of anthropic.beta.sessions.events.list(sessionId)) events.push(e);
   return events;
-}
-
-/** Custom-tool calls that have no matching `user.custom_tool_result` yet. */
-export function unansweredToolUses(events: SessionEvent[]): CustomToolUse[] {
-  const answered = new Set(
-    events.flatMap((e) => (e.type === "user.custom_tool_result" ? [e.custom_tool_use_id] : [])),
-  );
-  return events.filter(
-    (e): e is CustomToolUse => e.type === "agent.custom_tool_use" && !answered.has(e.id),
-  );
 }
 
 export type SettleResult =

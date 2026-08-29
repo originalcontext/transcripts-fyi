@@ -18,6 +18,7 @@ Prod: https://transcripts.fyi · Dev: `npm run dev` + ngrok → `/webhook`
 - **Storage** — Neon over HTTP (drizzle), Upstash over REST. Migrations in `drizzle/`, applied by `vercel-build` per environment.
 - **Auth** — invite code in `INVITE_CODE`, checked in `proxy.ts`, stateless HMAC session cookie. Root `/` is the splash; `?invite=` prefills.
 - **UI kit** — shadcn (Radix primitives, nova preset, neutral, CSS vars), lucide icons, next-themes (class strategy, system default), sonner toasts. Components live in `src/components/ui/`; add more with `npx shadcn add <name>`.
+- **Quality gate** — `npm run check` = typecheck + eslint (import order, unused imports) + vitest + knip; runs on `git push` via `.githooks/pre-push` (`prepare` sets `core.hooksPath`). One test file covers the idempotency core (`unansweredToolUses`, `deriveRunStatus`) against a captured real session log.
 - **Docs** — `docs/managed-agents/` local reference, verified against live docs 2026-08-29. Sprint notes in `docs/sprints/`.
 
 - **Mainline behind the line** — the server render touches Postgres only; `runs.status` / `list_cost_cents` are maintained by the webhook. The CMA-backed trace pane is admin-gated (`ADMIN_INVITE_CODE`) and fetched client-side after mount, so admins and non-admins get the same TTFB and a CMA outage can't slow or break a page.
@@ -27,7 +28,8 @@ Prod: https://transcripts.fyi · Dev: `npm run dev` + ngrok → `/webhook`
 
 ## Below the line (next)
 
-- **Webhook consistency & resiliency sprint (first).** The webhook is the single seam between CMA and product state — artifacts, run status, cost all cross there. Make it boringly correct: orphaned sessions when the `runs` insert fails after `sessions.create`; stuck `requires_action` if a delivery is dropped after three retries; FMP retries/timeouts inside the handler; handler runtime vs. Vercel function limits. **Belt and suspenders via Vercel crons:** a *reconciler* (every few minutes: for runs not `ended`, `sessions.retrieve` and re-settle any that drifted or are stuck) and a *GC* (archive CMA sessions for runs `ended` > N days, prune `webhook_events`). Webhooks fast-path; crons guarantee eventual consistency.
+- **Webhook consistency & resiliency sprint (first).** The webhook is the single seam between CMA and product state — artifacts, run status, cost all cross there. Make it boringly correct: orphaned sessions when the `runs` insert fails after `sessions.create`; stuck `requires_action` if a delivery is dropped after three retries; FMP retries/timeouts inside the handler; handler runtime vs. Vercel function limits. `npm run reconcile` is the **dry-run reconciler** — it prints status drift, stuck `requires_action`, orphan sessions, and stale "working" runs without changing anything; it is the spec for the cron. **Belt and suspenders via Vercel crons:** a *reconciler* (every few minutes: for runs not `ended`, `sessions.retrieve` and re-settle any that drifted or are stuck) and a *GC* (archive CMA sessions for runs `ended` > N days, prune `webhook_events`). Webhooks fast-path; crons guarantee eventual consistency.
+- **Responsive / mobile UX sprint** — the three-pane layout is desktop-only today; the sausage pane should become a retractable drawer (and collapse by default below a breakpoint).
 - **Skills & system prompts sprint** — the distiller skill and system prompt are deliberately plain right now; make them effective (longitudinal structure, citations, tone) as a dedicated pass.
 - **Versioning, later** — roll-forward policy for long-lived runs (lazy on next view / new transcript, or reconciler cron), `ant` YAML in CI if wanted, prompt A/B via `agent_with_overrides`. Environment changes still manual.
 - **Persistence at the CMA layer for ongoing synthesis** — long-lived session vs. memory store vs. re-run from artifacts when a new transcript arrives.
@@ -78,5 +80,7 @@ npm run dev                      # http://localhost:3000 (needs .env.local via `
 npm run distill -- NVDA           # CLI twin of "Add to universe"
 npm run smoke:run -- --target dev # /smoke page, CLI twin
 npm run smoke:storage
+npm run check                    # typecheck + lint + test + knip (also the pre-push hook)
+npm run reconcile                # dry-run reconciler: prints drift, changes nothing
 npm run db:generate && npm run db:migrate   # dev only
 ```

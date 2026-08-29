@@ -12,7 +12,14 @@
     "db:generate": "node --env-file=${ENV_FILE:-.env.local} node_modules/drizzle-kit/bin.cjs generate",
     "db:migrate": "node --env-file=${ENV_FILE:-.env.local} node_modules/drizzle-kit/bin.cjs migrate",
     "vercel-build": "drizzle-kit migrate && next build",
-    "distill": "tsx --env-file=${ENV_FILE:-.env.local} scripts/distill.ts"
+    "distill": "tsx --env-file=${ENV_FILE:-.env.local} scripts/distill.ts",
+    "typecheck": "tsc --noEmit -p .",
+    "lint:fix": "eslint --fix",
+    "test": "vitest run",
+    "knip": "knip",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run knip",
+    "reconcile": "tsx --env-file=${ENV_FILE:-.env.local} scripts/reconcile.ts",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
@@ -40,9 +47,13 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "knip": "^6.33.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=22.13.0"

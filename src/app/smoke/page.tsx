@@ -1,10 +1,10 @@
 import { createStackAction } from "@/app/actions";
+import { logoutAction } from "@/app/login/actions";
+import { SmokeRunner } from "@/app/smoke/smoke-runner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { logoutAction } from "@/app/login/actions";
-import { SmokeRunner } from "@/app/smoke/smoke-runner";
 import { deployTarget } from "@/lib/anthropic";
 import { listSmokeSessions } from "@/lib/smoke/session";
 import { findSmokeStack } from "@/lib/smoke/stack";
