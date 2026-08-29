@@ -17,7 +17,6 @@
 | `SMOKE_TARGET` | `dev` | never | never | you, local only | Forces `deployTarget()`. On Vercel leave unset: `VERCEL_ENV === 'production'` → `prod`, anything else → `dev` |
 | `VERCEL_ENV`, `NODE_ENV` | — | auto | auto | Vercel / Next | `NODE_ENV=production` sets the cookie `secure` flag |
 | `ENV_FILE` | — | — | — | you, on the CLI | npm scripts read `--env-file=${ENV_FILE:-.env.local}`; e.g. `ENV_FILE=.env.prod.local` |
-| `TRANSCRIPT_API_KEY` | — | — | — | — | In `.env.example` but read nowhere; vestigial |
 
 Vercel marks prod secrets *sensitive*, so `vercel env pull` for production returns `[SENSITIVE]` placeholders (sprint notes). That is what makes "never migrate prod from a laptop" hard to violate by accident. `vercel env pull` also drops extra integration vars (`POSTGRES_*`, `PG*`, `KV_URL`, …) into `.env.local`; the app ignores them.
 

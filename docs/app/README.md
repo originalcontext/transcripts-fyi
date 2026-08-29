@@ -10,7 +10,7 @@ A shared "universe" of stock tickers. Adding one creates a `subjects` row and a 
 
 1. `AddSubject` form → `addSubjectAction` (`src/app/s/actions.ts`): ticker must match `^[A-Z.\-]{1,10}$`; calls `addSubject(key, deployTarget())`.
 2. `addSubject` (`src/lib/distill/add.ts`): find-or-insert `subjects` (`kind='ticker'`, `onConflictDoNothing`); if no non-`ended` run exists for skill `earnings-transcripts`, `startRun`.
-3. `startRun` → `ensureDistillStack(target)` (`src/lib/distill/stack.ts`): find-or-create environment `transcripts-fyi-distill-<target>` (cloud, limited networking), skill `earnings-transcripts` (by display name, shared across targets), agent by metadata `{app:'tfyi', role:'distiller', target}`. `config_hash` = sha256 of system prompt + model/effort + tool defs + skill markdown, stamped in agent metadata; a mismatch publishes a new skill version (if the skill hash moved) and a new immutable agent version via `agents.update`.
+3. `startRun` → `ensureDistillStack(target)` (`src/lib/distill/stack.ts` → `src/lib/cma/stack.ts`): find-or-create environment `transcripts-fyi-distill-<target>` (cloud, limited networking), skill `earnings-transcripts` (by display name, shared across targets), agent by metadata `{app:'tfyi', role:'distiller', target}`. `config_hash` = sha256 of system prompt + model/effort + tool defs + skill markdown, stamped in agent metadata; a mismatch publishes a new skill version (if the skill hash moved) and a new immutable agent version via `agents.update`.
 4. `sessions.create` with `agent: {id, version}` pinned, `environment_id`, `budget.max_list_cost = 1000` cents, `metadata {app, target, run_id, subject, skill}`, one initial user message. Then `runs` is inserted (status default `working`) with all `cma_*` ids.
 5. The agent reads the skill (`read` is the only built-in tool enabled), calls `list_transcripts`, then `fetch_transcript` ×8 (≤2 in parallel), then `post_artifact`. Each custom-tool call idles the session with `stop_reason: requires_action`; Anthropic webhooks `session.status_idled` to `/webhook`.
 6. `/webhook` (`src/app/webhook/route.ts`): `webhooks.unwrap` verifies the signature on the raw body; insert into `webhook_events` (duplicate event id → 204 and stop); for any `session.*` type except `session.deleted`, run `settleDistillSession` and `settlePingPongSession` in parallel. Routing is by prefix, not exact event type.
@@ -47,7 +47,8 @@ Why: the user-facing product must stay predictable and free per view even if CMA
 | `src/lib/redis.ts` | Upstash REST + `key()` target prefix; idle on the product path | adding a cache |
 | `src/lib/distill/skill.ts` | `DISTILL_SKILL_MD` — the skill the agent follows (steps, style, HTML rules) | changing what the agent produces |
 | `src/lib/distill/tools.ts` | Custom tool defs (`DISTILL_TOOLS`) + impls (`runDistillTool`) | changing the tools contract |
-| `src/lib/distill/stack.ts` | `ensureDistillStack`: find-or-create env/skill/agent, hash-drift versioning | versioning, model, system prompt |
+| `src/lib/cma/stack.ts` | generic find-or-create env/skill/agent with hash-drift versioning (`ensureStack` / `findStack`); `src/lib/cma/events.ts` is the pure, unit-tested idempotency core | versioning, how drift is detected |
+| `src/lib/distill/stack.ts` | the distiller's `StackSpec` (model, system prompt, tools) → `ensureDistillStack` | model, system prompt |
 | `src/lib/distill/add.ts` | `addSubject`, `startRun`, `regenerateSubject`, `regenerateAll` | run lifecycle |
 | `src/lib/distill/settle.ts` | `settleDistillSession`: the webhook's product half | status/cost sync, idempotency |
 | `src/lib/distill/queries.ts` | Hot-path queries + `sessionTrace` (the one live-CMA read) | page data |
