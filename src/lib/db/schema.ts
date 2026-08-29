@@ -39,6 +39,7 @@ export const runs = pgTable("runs", {
   cmaAgentId: text("cma_agent_id").notNull(),
   cmaAgentVersion: integer("cma_agent_version").notNull(),
   cmaEnvironmentId: text("cma_environment_id").notNull(),
+  cmaSkillVersion: text("cma_skill_version"),
   /** Maintained by the webhook: working | idle | budget_reached | ended. The mainline reads only this. */
   status: text("status").notNull().default("working"),
   listCostCents: integer("list_cost_cents").notNull().default(0),

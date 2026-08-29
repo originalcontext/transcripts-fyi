@@ -1,4 +1,5 @@
 import { toFile } from "@anthropic-ai/sdk";
+import crypto from "node:crypto";
 import { anthropic, type DeployTarget } from "@/lib/anthropic";
 import { DISTILL_SKILL, DISTILL_SKILL_MD } from "@/lib/distill/skill";
 import { DISTILL_TOOLS } from "@/lib/distill/tools";
@@ -22,13 +23,22 @@ const AGENT_TOOLS = [
   },
   ...DISTILL_TOOLS,
 ];
-const toolSig = (tools: { type: string; name?: string }[]) =>
-  tools.flatMap((t) => (t.type === "custom" && t.name ? [t.name] : [])).sort().join(",");
-const DESIRED = toolSig(DISTILL_TOOLS);
+
+const SYSTEM =
+  "You are a longitudinal transcript distiller. Each subject you are given has a skill describing exactly how to fetch its transcripts and what to produce. Read the relevant skill before starting and follow it precisely. Be concrete and quantitative; never pad.";
+const MODEL = { id: "claude-opus-5" as const, effort: "high" as const };
+
+// Everything that changes what a fresh session would do. Stamped on the agent;
+// a mismatch publishes a new skill version and a new agent version. Sessions
+// already running keep what they started with — "Regenerate" is how they catch up.
+const sha = (s: string) => crypto.createHash("sha256").update(s).digest("hex").slice(0, 16);
+const SKILL_HASH = sha(DISTILL_SKILL_MD);
+const CONFIG_HASH = sha(JSON.stringify({ SYSTEM, MODEL, AGENT_TOOLS, SKILL_HASH }));
 
 export type DistillStack = {
   environmentId: string;
   skillId: string;
+  skillVersion: string;
   agentId: string;
   agentVersion: number;
 };
@@ -60,19 +70,31 @@ export async function ensureDistillStack(target: DeployTarget): Promise<DistillS
     if (m.app !== APP || m.role !== ROLE || m.target !== target || a.archived_at) continue;
     if (!agent || a.created_at > agent.created_at) agent = a;
   }
-  if (agent && toolSig(agent.tools) !== DESIRED) {
-    agent = await anthropic.beta.agents.update(agent.id, { tools: AGENT_TOOLS, version: agent.version });
+  const metadata = { app: APP, role: ROLE, target, config_hash: CONFIG_HASH, skill_hash: SKILL_HASH };
+  if (agent && agent.metadata?.config_hash !== CONFIG_HASH) {
+    if (agent.metadata?.skill_hash !== SKILL_HASH) {
+      skill = await anthropic.skills.versions
+        .create(skill.id, { files: [await toFile(Buffer.from(DISTILL_SKILL_MD), `${DISTILL_SKILL}/SKILL.md`)] })
+        .then(() => anthropic.skills.retrieve(skill!.id));
+    }
+    agent = await anthropic.beta.agents.update(agent.id, {
+      system: SYSTEM,
+      model: MODEL,
+      tools: AGENT_TOOLS,
+      skills: [{ type: "custom", skill_id: skill.id, version: "latest" }],
+      metadata,
+      version: agent.version,
+    });
   }
   agent ??= await anthropic.beta.agents.create({
     name: `transcripts.fyi distiller (${target})`,
     description: "Longitudinal transcript distiller. Skills decide what kind of transcript.",
-    model: { id: "claude-opus-5", effort: "high" },
-    system:
-      "You are a longitudinal transcript distiller. Each subject you are given has a skill describing exactly how to fetch its transcripts and what to produce. Read the relevant skill before starting and follow it precisely. Be concrete and quantitative; never pad.",
+    model: MODEL,
+    system: SYSTEM,
     skills: [{ type: "custom", skill_id: skill.id, version: "latest" }],
     tools: AGENT_TOOLS,
-    metadata: { app: APP, role: ROLE, target },
+    metadata,
   });
 
-  return { environmentId: environment.id, skillId: skill.id, agentId: agent.id, agentVersion: agent.version };
+  return { environmentId: environment.id, skillId: skill.id, skillVersion: skill.latest_version_id, agentId: agent.id, agentVersion: agent.version };
 }

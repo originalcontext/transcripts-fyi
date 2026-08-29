@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { bumpBudgetAction } from "@/app/s/actions";
+import { bumpBudgetAction, regenerateAllAction, regenerateSubjectAction } from "@/app/s/actions";
 import { Button } from "@/components/ui/button";
 
 type Trace = {
-  run: { id: string; cmaSessionId: string; cmaAgentId: string; cmaAgentVersion: number };
+  run: { id: string; cmaSessionId: string; cmaAgentId: string; cmaAgentVersion: number; cmaSkillVersion: string | null };
   trace: {
     status: string;
     stop: string | null;
@@ -23,7 +23,7 @@ type Trace = {
  * never waits on CMA; admins and non-admins get the same TTFB. Refetches on an
  * interval while the run is live.
  */
-export function Sausage({ runId, live }: { runId: string; live: boolean }) {
+export function Sausage({ runId, subjectId, live }: { runId: string; subjectId: string; live: boolean }) {
   const [data, setData] = useState<Trace | null>(null);
   const [state, setState] = useState<"loading" | "ok" | "forbidden" | "error">("loading");
 
@@ -50,6 +50,7 @@ export function Sausage({ runId, live }: { runId: string; live: boolean }) {
   if (state === "error" || !data) return <p className="text-muted-foreground">trace unavailable</p>;
 
   const { run, trace } = data;
+  // (agent/skill versions the run was started on are on the run row; shown below)
   return (
     <>
       <dl className="mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono">
@@ -63,13 +64,24 @@ export function Sausage({ runId, live }: { runId: string; live: boolean }) {
         <dd>{(trace.inputTokens ?? 0).toLocaleString()} in / {(trace.outputTokens ?? 0).toLocaleString()} out</dd>
         <dt className="text-muted-foreground">agent</dt>
         <dd>{run.cmaAgentId} v{run.cmaAgentVersion}</dd>
+        <dt className="text-muted-foreground">skill</dt>
+        <dd>{run.cmaSkillVersion ?? "—"}</dd>
       </dl>
-      <form action={bumpBudgetAction} className="mb-3">
-        <input type="hidden" name="runId" value={run.id} />
-        <Button type="submit" size="sm" variant={trace.stop === "budget_reached" ? "default" : "outline"}>
-          {trace.stop === "budget_reached" ? "Budget reached — bump +$5" : "Bump budget +$5"}
-        </Button>
-      </form>
+      <div className="mb-3 flex flex-wrap gap-2">
+        <form action={bumpBudgetAction}>
+          <input type="hidden" name="runId" value={run.id} />
+          <Button type="submit" size="sm" variant={trace.stop === "budget_reached" ? "default" : "outline"}>
+            {trace.stop === "budget_reached" ? "Budget reached — bump +$5" : "Bump budget +$5"}
+          </Button>
+        </form>
+        <form action={regenerateSubjectAction} onSubmit={(e) => !confirm("End this run and re-distill on the current skill/agent?") && e.preventDefault()}>
+          <input type="hidden" name="subjectId" value={subjectId} />
+          <Button type="submit" size="sm" variant="outline">Regenerate</Button>
+        </form>
+        <form action={regenerateAllAction} onSubmit={(e) => !confirm("Re-distill EVERY subject in the universe? (~$1.50 each)") && e.preventDefault()}>
+          <Button type="submit" size="sm" variant="outline">Regenerate all</Button>
+        </form>
+      </div>
       <ol className="space-y-1 font-mono">
         {trace.events.map((e) => (
           <li key={e.id} className="grid grid-cols-[auto_1fr] gap-x-2">

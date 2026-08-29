@@ -11,7 +11,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const [run] = await db.select().from(schema.runs).where(eq(schema.runs.id, id));
   if (!run) return new Response("not found", { status: 404 });
   try {
-    return Response.json({ run: { id: run.id, cmaSessionId: run.cmaSessionId, cmaAgentId: run.cmaAgentId, cmaAgentVersion: run.cmaAgentVersion }, trace: await sessionTrace(run.cmaSessionId) });
+    return Response.json({ run: { id: run.id, cmaSessionId: run.cmaSessionId, cmaAgentId: run.cmaAgentId, cmaAgentVersion: run.cmaAgentVersion, cmaSkillVersion: run.cmaSkillVersion }, trace: await sessionTrace(run.cmaSessionId) });
   } catch (err) {
     return Response.json({ error: err instanceof Error ? err.message : String(err) }, { status: 502 });
   }

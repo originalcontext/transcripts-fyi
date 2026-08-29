@@ -35,6 +35,10 @@ the company as seen through its last eight quarterly earnings calls.
      where numbers across quarters help
    - cite quarters inline like \`(Q2 FY2027)\` so claims are checkable
    - aim for roughly 1,000–1,800 words
+   - look: quiet and editorial — white background, near-black text, a
+     system font stack, one accent color used sparingly, no boxes or
+     gradients; tables with hairline rules; it should sit comfortably inside
+     a plain app pane
 5. Call \`post_artifact\` exactly once with \`{"html": "<the document>", "meta":
    {"symbol": "<TICKER>", "quarters": ["Q2 FY2027", ...]}}\`.
 6. Reply with one line: \`posted <TICKER> <n> quarters\`.

@@ -1,0 +1,1 @@
+ALTER TABLE "runs" ADD COLUMN "cma_skill_version" text;

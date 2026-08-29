@@ -4,7 +4,9 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { anthropic, deployTarget } from "@/lib/anthropic";
 import { db, schema } from "@/lib/db";
-import { addSubject } from "@/lib/distill/add";
+import { addSubject, regenerateAll, regenerateSubject } from "@/lib/distill/add";
+import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
+import { cookies } from "next/headers";
 
 const BUMP_CENTS = 500;
 
@@ -39,5 +41,21 @@ export async function bumpBudgetAction(formData: FormData) {
       max_list_cost: { amount: String(Math.max(current, consumed + 1) + BUMP_CENTS), currency: "USD" },
     },
   });
+  revalidatePath("/", "layout");
+}
+
+async function requireAdmin() {
+  if (!(await isAdmin((await cookies()).get(ADMIN_COOKIE)?.value))) throw new Error("admin only");
+}
+
+export async function regenerateSubjectAction(formData: FormData) {
+  await requireAdmin();
+  await regenerateSubject(String(formData.get("subjectId") ?? ""), deployTarget());
+  revalidatePath("/", "layout");
+}
+
+export async function regenerateAllAction() {
+  await requireAdmin();
+  await regenerateAll(deployTarget());
   revalidatePath("/", "layout");
 }

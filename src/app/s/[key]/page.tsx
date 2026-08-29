@@ -54,7 +54,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
       {admin && (
         <aside className="w-96 shrink-0 overflow-y-auto border-l p-3 text-xs">
           <div className="mb-2 font-medium">How the sausage was made</div>
-          {run ? <Sausage runId={run.id} live={working} /> : <p className="text-muted-foreground">no run</p>}
+          {run ? <Sausage runId={run.id} subjectId={subject.id} live={working} /> : <p className="text-muted-foreground">no run</p>}
         </aside>
       )}
     </Shell>
