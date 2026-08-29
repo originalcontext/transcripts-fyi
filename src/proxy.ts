@@ -7,8 +7,13 @@ import { isValidSession, SESSION_COOKIE } from "@/lib/auth";
  */
 export async function proxy(request: NextRequest) {
   if (await isValidSession(request.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.next();
+
   const login = new URL("/login", request.url);
+  login.search = request.nextUrl.search; // carries ?invite=… through
   login.searchParams.set("next", request.nextUrl.pathname);
+
+  // The root is the splash: rewrite so the URL stays transcripts.fyi/?invite=…
+  if (request.nextUrl.pathname === "/") return NextResponse.rewrite(login);
   return NextResponse.redirect(login);
 }
 

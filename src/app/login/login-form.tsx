@@ -3,17 +3,19 @@
 import { useActionState } from "react";
 import { loginAction } from "@/app/login/actions";
 
-export function LoginForm({ next }: { next: string }) {
+export function LoginForm({ next, invite }: { next: string; invite: string }) {
   const [state, action, pending] = useActionState(loginAction, undefined);
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="next" value={next} />
       <input
         name="code"
-        type="password"
+        type="text"
+        defaultValue={invite}
         autoFocus
         autoComplete="off"
-        placeholder="invite code"
+        spellCheck={false}
+        placeholder="enter invite code"
         className="w-full rounded border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
       />
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
