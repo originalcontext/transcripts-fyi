@@ -41,7 +41,7 @@ export async function Shell({ current, hotPathMs = 0, children }: { current?: st
         className="flex items-center justify-center gap-2 bg-emerald-500/10 px-3 py-0.5 font-mono text-[11px] text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-400"
         title="This render: Postgres only. Never waits on CMA."
       >
-        hot path · postgres · {totalMs}ms · $0/view
+        hot path · {totalMs}ms · $0/view
       </div>
       <header className="flex items-center justify-between gap-2 border-b px-2 py-1.5 md:px-4 md:py-2">
         <div className="flex min-w-0 items-center gap-2 md:gap-3">
@@ -52,7 +52,7 @@ export async function Shell({ current, hotPathMs = 0, children }: { current?: st
             </div>
           </MobileNav>
           <Link href="/" className="truncate font-semibold">transcripts.fyi</Link>
-          <Badge variant="outline">{target}</Badge>
+          {target === "dev" && <Badge variant="outline">{target}</Badge>}
         </div>
         <div className="hidden md:block">{account}</div>
       </header>

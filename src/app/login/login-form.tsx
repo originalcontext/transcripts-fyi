@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 
 export function LoginForm({ next, invite }: { next: string; invite: string }) {
   const [state, action, pending] = useActionState(loginAction, undefined);
+  const error = state?.error;
   return (
-    <form action={action} className="space-y-3">
+    <form action={action} className="space-y-4">
       <input type="hidden" name="next" value={next} />
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Label htmlFor="code">Invite code</Label>
         <Input
           id="code"
@@ -21,12 +22,18 @@ export function LoginForm({ next, invite }: { next: string; invite: string }) {
           autoFocus
           autoComplete="off"
           spellCheck={false}
-          placeholder="enter invite code"
+          placeholder="Paste your invite code"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "code-error" : undefined}
         />
+        {error && (
+          <p id="code-error" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
       </div>
-      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-      <Button type="submit" disabled={pending}>
-        {pending ? "…" : "Enter"}
+      <Button type="submit" className="w-full" disabled={pending}>
+        Enter
       </Button>
     </form>
   );

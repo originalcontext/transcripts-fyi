@@ -1,4 +1,5 @@
 import { LoginForm } from "@/app/login/login-form";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function Login({
   searchParams,
@@ -7,14 +8,17 @@ export default async function Login({
 }) {
   const { next = "/", invite = "" } = await searchParams;
   return (
-    <main className="flex min-h-screen items-center justify-center p-8">
-      <div className="w-full max-w-sm space-y-6">
-        <header className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">transcripts.fyi</h1>
-          <p className="text-muted-foreground">Understand a company through its earnings calls.</p>
-        </header>
-        <LoginForm next={next} invite={invite} />
-      </div>
+    <main className="flex min-h-screen items-center justify-center bg-muted/40 p-6">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold tracking-tight">transcripts.fyi</CardTitle>
+          <CardDescription>Understand a company through its earnings calls.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LoginForm next={next} invite={invite} />
+        </CardContent>
+        <CardFooter className="justify-center text-xs text-muted-foreground">Private preview · invite only</CardFooter>
+      </Card>
     </main>
   );
 }

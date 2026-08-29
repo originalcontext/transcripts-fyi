@@ -2,21 +2,16 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { AutoRefresh } from "@/components/app/auto-refresh";
+import { RequestUpdate } from "@/components/app/request-update";
 import { Sausage } from "@/components/app/sausage";
 import { SausageLayout } from "@/components/app/sausage-layout";
 import { Shell } from "@/components/app/shell";
 import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
 import { activeRun, getSubject, latestArtifact } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
+import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_LABEL: Record<string, string> = {
-  working: "distilling — report coming soon",
-  idle: "up to date",
-  budget_reached: "paused — budget reached",
-  ended: "ended",
-};
 
 /** The mainline reads, timed. Postgres only — everything CMA-shaped is in <Sausage/>. */
 async function loadHotPath(subjectId: string) {
@@ -43,12 +38,23 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
 
       <SausageLayout
         header={
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
             <span className="font-medium">{subject.key}</span>
-            <span className="text-xs text-muted-foreground">
-              {artifact &&
-                `latest ${artifact.createdAt.toISOString().replace("T", " ").slice(0, 16)} · ${String((artifact.meta as { quarters?: string[] }).quarters?.length ?? "?")} quarters · `}
-              {run ? `${STATUS_LABEL[run.status] ?? run.status} · $${(run.listCostCents / 100).toFixed(2)}` : "no run"}
+            <span className="flex flex-wrap items-baseline gap-x-2 text-xs text-muted-foreground">
+              {artifact && (
+                <time dateTime={artifact.createdAt.toISOString()} title={artifact.createdAt.toUTCString()}>
+                  Updated {timeAgo(artifact.createdAt)}
+                </time>
+              )}
+              {working ? (
+                <span>{artifact ? "Updating…" : "Distilling — report coming soon"}</span>
+              ) : run?.status === "budget_reached" ? (
+                <span>Paused (budget)</span>
+              ) : run?.status === "ended" ? (
+                <span>Ended</span>
+              ) : (
+                <RequestUpdate subjectId={subject.id} />
+              )}
             </span>
           </div>
         }

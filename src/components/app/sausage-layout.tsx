@@ -7,14 +7,23 @@ import { useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "tfyi:sausage-open";
+const DESKTOP = "(min-width: 768px)"; // Tailwind `md`
 
 // Per-viewer "drawer open" preference in localStorage, exposed as an external
 // store so the server render (always open) and the client agree without a
-// setState-in-effect. Everything is try/catch'd: storage may be unavailable.
+// setState-in-effect. With no stored preference the drawer follows the
+// viewport: open at `md` and up, closed below. React reads the server snapshot
+// during hydration and only then switches to the client snapshot, so a
+// narrow viewport closes the drawer right after hydration without a mismatch.
+// Everything is try/catch'd: storage and matchMedia may be unavailable.
 const listeners = new Set<() => void>();
 const readOpen = () => {
   try {
-    return localStorage.getItem(STORAGE_KEY) !== "0";
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored !== null) return stored !== "0";
+  } catch {}
+  try {
+    return window.matchMedia(DESKTOP).matches;
   } catch {
     return true;
   }
@@ -27,7 +36,16 @@ const writeOpen = (v: boolean) => {
 };
 const subscribe = (l: () => void) => {
   listeners.add(l);
-  return () => listeners.delete(l);
+  // Resizing across `md` re-evaluates the default while nothing is stored.
+  let mq: MediaQueryList | undefined;
+  try {
+    mq = window.matchMedia(DESKTOP);
+    mq.addEventListener("change", l);
+  } catch {}
+  return () => {
+    listeners.delete(l);
+    mq?.removeEventListener("change", l);
+  };
 };
 
 /**
@@ -35,8 +53,8 @@ const subscribe = (l: () => void) => {
  *
  * The panel is a glass sheet that overlays the RIGHT side of the middle pane's
  * content area only — never the nav, the header, or the pane's own status row,
- * and nothing behind it is dimmed. It is open
- * by default. A full-height amber rail on the pane's right edge is the toggle;
+ * and nothing behind it is dimmed. With no stored preference it starts open
+ * at `md` and up and closed below. A full-height amber rail on the pane's right edge is the toggle;
  * when closed, only the rail remains. Same mechanism at every width; the panel
  * just gets narrower on small screens. `panel` is null for non-admins → no rail.
  */
