@@ -20,12 +20,15 @@ export default async function Home() {
     <main className="mx-auto max-w-2xl space-y-8 p-8">
       <header>
         <h1 className="text-xl font-semibold">transcripts.fyi</h1>
-        <p className="text-sm text-neutral-500">
-          Managed Agents smoke · target <code className="font-mono">{target}</code> ·{" "}
-          <form action={logoutAction} className="inline">
+        <div className="flex items-center gap-2 text-sm text-neutral-500">
+          <span>
+            Managed Agents smoke · target <code className="font-mono">{target}</code>
+          </span>
+          <span>·</span>
+          <form action={logoutAction}>
             <button className="underline">log out</button>
           </form>
-        </p>
+        </div>
       </header>
 
       <section className="space-y-2 text-sm">
