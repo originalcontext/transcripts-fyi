@@ -11,7 +11,8 @@
     "smoke:storage": "tsx --env-file=${ENV_FILE:-.env.local} scripts/smoke/storage.ts",
     "db:generate": "node --env-file=${ENV_FILE:-.env.local} node_modules/drizzle-kit/bin.cjs generate",
     "db:migrate": "node --env-file=${ENV_FILE:-.env.local} node_modules/drizzle-kit/bin.cjs migrate",
-    "vercel-build": "drizzle-kit migrate && next build"
+    "vercel-build": "drizzle-kit migrate && next build",
+    "distill": "tsx --env-file=${ENV_FILE:-.env.local} scripts/distill.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

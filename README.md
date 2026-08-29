@@ -20,11 +20,22 @@ Prod: https://transcripts.fyi · Dev: `npm run dev` + ngrok → `/webhook`
 - **UI kit** — shadcn (Radix primitives, nova preset, neutral, CSS vars), lucide icons, next-themes (class strategy, system default), sonner toasts. Components live in `src/components/ui/`; add more with `npx shadcn add <name>`.
 - **Docs** — `docs/managed-agents/` local reference, verified against live docs 2026-08-29.
 
+- **Product v0** — three panes: universe (left), latest explainer rendered in a sandboxed iframe (middle), "how the sausage was made" live from the CMA session with a budget-bump button (right). "Add to universe" creates the subject, finds-or-creates the distiller stack, starts a $10-capped long-lived session; the webhook answers `list_transcripts` / `fetch_transcript` (FMP) and `post_artifact` (Postgres). NVDA: 8 quarters, ~3 min, ~$1.40.
+- **Data model** — `subjects` (kind + key), `runs` (subject × skill → one CMA session), `artifacts` (append-only, unique on tool-use id). `docs/` and `README` carry the rationale.
+
 ## Below the line (next)
 
-- Product design: ticker → transcript set → per-quarter analysis (map) → cross-quarter explainer (reduce) → depth loop.
-- Where the OLTP side (Neon/Upstash, pages) meets the async side (CMA sessions, webhooks): job records, progress, results.
-- Rounds of simplification and hardening once the shape is right.
+- **Resiliency sprint** — orphaned sessions if the run insert fails after session create; run status vs. live session status; retries on FMP; what "working" means in the sidebar beyond "no artifact yet".
+- **Skills & system prompts sprint** — the distiller skill and system prompt are deliberately plain right now; make them effective (longitudinal structure, citations, tone) as a dedicated pass.
+- **Versioning of skills, agents, environments** — today: skill found by name (edits need a manual new version), agent auto-versions on tool drift, environment never changes. Think through implications: pinning runs to versions, migrating long-lived sessions, rollback.
+- **Persistence at the CMA layer for ongoing synthesis** — long-lived session vs. memory store vs. re-run from artifacts when a new transcript arrives.
+- **Sources of truth vs. cache layers** — transcripts (FMP) are refetched per run; Redis is idle. Add caching only when something is measurably slow.
+- **GenUI hardening** — the explainer is agent-authored HTML in a `sandbox=""` iframe; revisit CSP, size limits, and what the agent may emit.
+- Simplification pass: fold `smoke/stack.ts` and `distill/stack.ts` once there are two real skills.
+
+## Future ideas
+
+- **Other universes.** Earnings transcripts were the first demo, not necessarily the best. Explore transcript/document universes in science and healthcare (trial readouts, FDA advisory-committee transcripts, grand rounds, conference Q&A) — each is a skill plus a skill-specific toolset on the same `subjects` / `runs` / `artifacts` model.
 
 ---
 
@@ -50,12 +61,18 @@ Quoted where Eddie said it; *implied* where it followed from the conversation.
 | 14 | Auth = invite code env var + proxy check + cookie session | "whats the simplest thing that can work.. demo with a handful of friends". Code doubles as the cookie secret; rotating it logs everyone out. **No `NEXT_PUBLIC_` prefix** — that would ship the secret to the browser |
 | 15 | Simplest thing that can work; harden later | "we will do some rounds of simplification, hardening, etc later so don't go overboard" |
 | 16 | Eddie drives; discuss decision points as they come | "this is part of an exercise to demonstrate judgement so we'll discuss decision points as we go" |
+| 17 | `subjects` / `runs` / `artifacts`, artifacts append-only, latest derived | "proposed data model looks good". Append-only makes the webhook write idempotent (unique on tool-use id) without a transaction, and keeps history for free |
+| 18 | Shared universe, $10 per run, bump button in the sausage pane | "shared universe is fine for now… budget cap of $10 is fine, bump button can be under the how the sausage is made section" |
+| 19 | One transcript per custom-tool call | *Finding:* a custom tool result truncates around 100k chars (a 385k batch lost everything past ~3 transcripts). Built-in tools spill to a file; custom tools don't. So `list_transcripts` + `fetch_transcript`, ≤2 in parallel |
+| 20 | Plain HTML in the tool call, not base64 | Recommended and unopposed: JSON escaping handles it, base64 costs 33% more output tokens and hides the content in the trace |
+| 21 | Skills and system prompts stay simple for now | "keep the skills and system instructions simple but effective for now, that's a whole sprint later" |
 
 ## Running it
 
 ```sh
 npm run dev                      # http://localhost:3000 (needs .env.local via `vercel env pull`)
-npm run smoke:run -- --target dev
+npm run distill -- NVDA           # CLI twin of "Add to universe"
+npm run smoke:run -- --target dev # /smoke page, CLI twin
 npm run smoke:storage
 npm run db:generate && npm run db:migrate   # dev only
 ```

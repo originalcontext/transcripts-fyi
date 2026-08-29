@@ -16,7 +16,7 @@ export async function createStackAction() {
     console.error("createStackAction", err);
     throw err; // surfaces as the route's error boundary; nothing to persist
   }
-  revalidatePath("/");
+  revalidatePath("/smoke");
 }
 
 export async function runSmokeAction(): Promise<{ sessionId: string } | { error: string }> {

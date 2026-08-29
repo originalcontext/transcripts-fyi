@@ -8,6 +8,13 @@
       "when": 1788015210075,
       "tag": "0000_strong_invaders",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788018435609,
+      "tag": "0001_talented_starfox",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { anthropic, deployTarget } from "@/lib/anthropic";
 import { db, schema } from "@/lib/db";
+import { settleDistillSession } from "@/lib/distill/settle";
 import { settlePingPongSession } from "@/lib/smoke/ping-pong";
 
 /**
@@ -48,8 +49,12 @@ export async function POST(request: Request) {
   switch (event.data.type) {
     case "session.status_idled":
     case "session.requires_action": {
-      const result = await settlePingPongSession(event.data.id);
-      console.log("webhook", { ...log, ...result });
+      // Each settler inspects the session's metadata and skips what isn't its own.
+      const [distill, smoke] = await Promise.all([
+        settleDistillSession(event.data.id),
+        settlePingPongSession(event.data.id),
+      ]);
+      console.log("webhook", { ...log, distill, smoke });
       break;
     }
     default:
