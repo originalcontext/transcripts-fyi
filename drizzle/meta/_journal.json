@@ -36,6 +36,13 @@
       "when": 1788028978475,
       "tag": "0004_rare_silk_fever",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788029482123,
+      "tag": "0005_boring_menace",
+      "breakpoints": true
     }
   ]
 }

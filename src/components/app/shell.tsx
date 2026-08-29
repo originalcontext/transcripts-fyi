@@ -13,14 +13,21 @@ import { listUniverse } from "@/lib/distill/queries";
  * App chrome. `hotPathMs` is the page's own Postgres time; the shell adds its
  * universe query and shows the total in the green bar across the top.
  */
-async function timedUniverse() {
+type Universe = Awaited<ReturnType<typeof listUniverse>>;
+
+/**
+ * App chrome. The page passes the universe it already fetched (one round for
+ * everything) and its Postgres time; pages without one let the shell fetch.
+ */
+async function timedUniverse(universe?: Universe) {
+  if (universe) return { list: universe, ms: 0 };
   const t0 = performance.now();
-  const universe = await listUniverse();
-  return { universe, ms: performance.now() - t0 };
+  const list = await listUniverse();
+  return { list, ms: performance.now() - t0 };
 }
 
-export async function Shell({ current, hotPathMs = 0, children }: { current?: string; hotPathMs?: number; children: React.ReactNode }) {
-  const { universe, ms } = await timedUniverse();
+export async function Shell({ current, universe, hotPathMs = 0, children }: { current?: string; universe?: Universe; hotPathMs?: number; children: React.ReactNode }) {
+  const { list, ms } = await timedUniverse(universe);
   const totalMs = Math.round(hotPathMs + ms);
   const target = deployTarget();
   const account = (
@@ -31,7 +38,7 @@ export async function Shell({ current, hotPathMs = 0, children }: { current?: st
   const sidebar = (
     <div className="space-y-3">
       <AddSubject />
-      <UniverseNav universe={universe} current={current} />
+      <UniverseNav universe={list} current={current} />
     </div>
   );
 

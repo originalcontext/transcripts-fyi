@@ -103,7 +103,7 @@ export function SausageLayout({ header, panel, children }: { header: React.React
                 <Link href="/smoke" className="underline">smoke</Link>
               </span>
             </div>
-            {panel}
+            {open && panel}
           </aside>
         </div>
         )}

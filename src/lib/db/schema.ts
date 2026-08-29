@@ -15,7 +15,7 @@ export const webhookEvents = pgTable("webhook_events", {
 
 // ---- product ----------------------------------------------------------------
 import { sql } from "drizzle-orm";
-import { integer, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 
 /** The universe. A subject is anything distilled longitudinally; today kind='ticker'. */
 export const subjects = pgTable(
@@ -49,19 +49,26 @@ export const runs = pgTable(
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   lastActivityAt: timestamp("last_activity_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("runs_one_live_per_subject_skill").on(t.subjectId, t.skill).where(sql`${t.status} <> 'ended'`)],
+  (t) => [
+    uniqueIndex("runs_one_live_per_subject_skill").on(t.subjectId, t.skill).where(sql`${t.status} <> 'ended'`),
+    index("runs_subject_skill").on(t.subjectId, t.skill),
+  ],
 );
 
 export type RunStatus = "working" | "idle" | "budget_reached" | "ended";
 
 /** Every result the agent posts. Append-only; latest = max(created_at). */
-export const artifacts = pgTable("artifacts", {
-  id: text("id").primaryKey(),
-  runId: text("run_id").notNull().references(() => runs.id),
-  subjectId: text("subject_id").notNull().references(() => subjects.id),
-  kind: text("kind").notNull(),
-  content: text("content").notNull(),
-  meta: jsonb("meta").$type<Record<string, unknown>>().notNull().default({}),
-  cmaToolUseId: text("cma_tool_use_id").notNull().unique(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const artifacts = pgTable(
+  "artifacts",
+  {
+    id: text("id").primaryKey(),
+    runId: text("run_id").notNull().references(() => runs.id),
+    subjectId: text("subject_id").notNull().references(() => subjects.id),
+    kind: text("kind").notNull(),
+    content: text("content").notNull(),
+    meta: jsonb("meta").$type<Record<string, unknown>>().notNull().default({}),
+    cmaToolUseId: text("cma_tool_use_id").notNull().unique(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("artifacts_subject_created").on(t.subjectId, t.createdAt)],
+);

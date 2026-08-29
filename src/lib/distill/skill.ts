@@ -88,6 +88,13 @@ document parses; put interactivity in \`x-data\` on the elements themselves,
 and any imperative setup (charts, \`lucide.createIcons()\`) in one
 \`<script>\` at the end of \`<body>\` guarded by \`DOMContentLoaded\`.
 
+## Errors
+
+If a tool returns an error, retry that call once. If it errors again, stop
+fetching: write notes for what you have, build the explainer from those
+quarters (say which are missing and why in the opening paragraph and in
+\`meta.note\`), and post it. Never retry a failing tool more than once.
+
 ## 5. Publish
 
 Call \`post_artifact\` exactly once with \`{"html": "<the document>", "meta":

@@ -25,8 +25,7 @@ export async function addSubjectAction(
     console.error("addSubjectAction", err);
     return { error: err instanceof Error ? err.message : String(err) };
   }
-  revalidatePath("/", "layout");
-  return { key };
+  return { key }; // client pushes to /s/<key>; every page is force-dynamic, nothing to revalidate
 }
 
 export async function bumpBudgetAction(formData: FormData) {

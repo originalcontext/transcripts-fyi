@@ -4,6 +4,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { toFile } from "@anthropic-ai/sdk";
 
 import { anthropic, type DeployTarget } from "@/lib/anthropic";
+import { key, redis } from "@/lib/redis";
 
 /**
  * Find-or-create a CMA "stack": one environment + one skill + one agent per
@@ -90,7 +91,31 @@ export async function findStack(spec: StackSpec): Promise<Partial<Stack>> {
   };
 }
 
+const STACK_TTL_S = 60 * 60 * 24 * 30;
+const cacheKey = (spec: StackSpec, config_hash: string) => key("stack", spec.app, spec.role, config_hash); // key() already prefixes the target
+
+/** Drop the cached ids (e.g. after a 404 proved them stale); the next ensureStack takes the slow path. */
+export async function forgetStack(spec: StackSpec) {
+  await redis.del(cacheKey(spec, hashes(spec).config_hash));
+}
+
+/**
+ * Happy path: one Redis read. Miss (first run, config changed, TTL): find-or-
+ * create against Anthropic's resources — which stay the source of truth —
+ * then remember the ids under this hash.
+ */
 export async function ensureStack(spec: StackSpec): Promise<Stack> {
+  const { config_hash } = hashes(spec);
+  const k = cacheKey(spec, config_hash);
+  const hit = await redis.get<Stack>(k).catch(() => null);
+  if (hit) return { ...hit, agentCurrent: true };
+  const stack = await resolveStack(spec);
+  await redis.set(k, stack, { ex: STACK_TTL_S }).catch(() => {});
+  return stack;
+}
+
+/** The slow path: find-or-create + hash-drift versioning against Anthropic's resources. */
+async function resolveStack(spec: StackSpec): Promise<Stack> {
   const { skill_hash, config_hash } = hashes(spec);
   const skillFile = async () => [await toFile(Buffer.from(spec.skill.markdown), `${spec.skill.name}/SKILL.md`)];
 

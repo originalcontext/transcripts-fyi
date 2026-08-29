@@ -16,7 +16,7 @@ const NOTES_TOOLSET = {
   ],
 };
 
-const distillSpec = (target: DeployTarget): StackSpec => ({
+export const distillSpec = (target: DeployTarget): StackSpec => ({
   app: APP,
   role: "distiller",
   target,

@@ -9,34 +9,34 @@ import { SausageLayout } from "@/components/app/sausage-layout";
 import { Shell } from "@/components/app/shell";
 import { injectArtifactHead } from "@/lib/artifact/imports";
 import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
-import { activeRun, getSubject, latestArtifact } from "@/lib/distill/queries";
+import { activeRunFor, getSubject, latestArtifactFor, listUniverse } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
 import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 /** The mainline reads, timed. Postgres only — everything CMA-shaped is in <Sausage/>. */
-async function loadHotPath(subjectId: string) {
+async function loadHotPath(key: string) {
   const t0 = performance.now();
-  const [artifact, run, admin] = await Promise.all([
-    latestArtifact(subjectId),
-    activeRun(subjectId, DISTILL_SKILL),
+  const [subject, artifact, run, universe, admin] = await Promise.all([
+    getSubject("ticker", key),
+    latestArtifactFor("ticker", key),
+    activeRunFor("ticker", key, DISTILL_SKILL),
+    listUniverse(),
     isAdmin((await cookies()).get(ADMIN_COOKIE)?.value),
   ]);
-  return { artifact, run, admin, hotPathMs: Math.round(performance.now() - t0) };
+  return { subject, artifact, run, universe, admin, hotPathMs: Math.round(performance.now() - t0) };
 }
 
 export default async function SubjectPage({ params }: { params: Promise<{ key: string }> }) {
   const { key } = await params;
-  const subject = await getSubject("ticker", key.toUpperCase());
+  const { subject, artifact, run, universe, admin, hotPathMs } = await loadHotPath(key.toUpperCase());
   if (!subject) notFound();
-
-  const { artifact, run, admin, hotPathMs } = await loadHotPath(subject.id);
   const working = run?.status === "working";
 
   return (
-    <Shell current={subject.key} hotPathMs={hotPathMs}>
-      <AutoRefresh active={working} />
+    <Shell current={subject.key} universe={universe} hotPathMs={hotPathMs}>
+      <AutoRefresh active={!!run && working} subjectId={subject.id} />
 
       <SausageLayout
         header={
@@ -65,8 +65,21 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
         {artifact ? (
           <ArtifactFrame title={`${subject.key} explainer`} srcDoc={injectArtifactHead(artifact.content)} />
         ) : (
-          <div className="flex flex-1 items-center justify-center p-6 text-center text-neutral-400">
-            {working ? "Reading the last twenty calls…" : "Nothing here yet."}
+          <div className="flex flex-1 items-center justify-center p-6">
+            {working ? (
+              <div className="max-w-md space-y-3 rounded-lg border border-neutral-800 bg-neutral-950 p-6 text-neutral-300">
+                <div className="text-base font-medium text-neutral-100">Reading {subject.key}&apos;s last twenty earnings calls</div>
+                <p className="text-sm leading-relaxed">
+                  Each call is analyzed on its own first — results, guidance, what management said and how they said it. Then we
+                  pull the five years together into one explainer built around how the story actually changed.
+                </p>
+                <p className="text-sm leading-relaxed text-neutral-400">
+                  This takes about half an hour. Come back then — this page updates itself when it&apos;s ready.
+                </p>
+              </div>
+            ) : (
+              <p className="text-neutral-400">Nothing here yet.</p>
+            )}
           </div>
         )}
       </SausageLayout>

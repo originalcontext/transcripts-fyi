@@ -6,7 +6,7 @@
 
 const BASE_URL = "https://financialmodelingprep.com/stable";
 
-const TIMEOUT_MS = 10_000;
+const TIMEOUT_MS = 15_000;
 
 /** One retry on timeout, network error, or 5xx — this runs inside the webhook, so it must be bounded. */
 async function fetchWithRetry(url: string | URL): Promise<Response> {

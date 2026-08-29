@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 
 import { Shell } from "@/components/app/shell";
-import { listUniverse } from "@/lib/distill/queries";
+import { firstSubjectKey } from "@/lib/distill/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const universe = await listUniverse();
-  if (universe.length > 0) redirect(`/s/${universe[0].key}`);
+  const first = await firstSubjectKey();
+  if (first) redirect(`/s/${first}`);
   return (
     <Shell>
       <main className="flex flex-1 items-center justify-center p-8 text-muted-foreground">
