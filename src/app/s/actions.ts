@@ -2,10 +2,9 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 
 import { anthropic, deployTarget } from "@/lib/anthropic";
-import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth-server";
 import { db, schema } from "@/lib/db";
 import { addSubject, regenerateSubject } from "@/lib/distill/runs";
 import { userMessage } from "@/lib/errors";
@@ -46,9 +45,6 @@ export async function bumpBudgetAction(formData: FormData) {
   revalidatePath("/", "layout");
 }
 
-async function requireAdmin() {
-  if (!(await isAdmin((await cookies()).get(ADMIN_COOKIE)?.value))) throw new Error("admin only");
-}
 
 export async function regenerateSubjectAction(
   _prev: { error?: string } | undefined,

@@ -1,10 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 
 import { deployTarget } from "@/lib/anthropic";
-import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth-server";
 import { startSmokeSession } from "@/lib/smoke/session";
 import { ensureSmokeStack, findSmokeStack } from "@/lib/smoke/stack";
 
@@ -12,9 +11,6 @@ function message(err: unknown) {
   return err instanceof Error ? err.message : String(err);
 }
 
-async function requireAdmin() {
-  if (!(await isAdmin((await cookies()).get(ADMIN_COOKIE)?.value))) throw new Error("admin only");
-}
 
 export async function createStackAction() {
   await requireAdmin();

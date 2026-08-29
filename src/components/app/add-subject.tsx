@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
-import { searchTickers as search,type TickerEntry as Entry } from "@/lib/tickers";
+import { asTickerEntries, searchTickers as search, type TickerEntry as Entry } from "@/lib/tickers";
 
 let cache: Entry[] | null = null;
 /** Static top-3000 list, loaded on first focus so it never rides in the initial bundle. */
 async function loadTickers(): Promise<Entry[]> {
-  cache ??= (await import("@/data/tickers.json")).default.tickers as unknown as Entry[];
+  cache ??= asTickerEntries((await import("@/data/tickers.json")).default.tickers);
   return cache;
 }
 

@@ -15,13 +15,13 @@ async function main() {
   if (target !== "dev" && target !== "prod") throw new Error("--target dev|prod is required");
 
   const stack = await ensureSmokeStack(target);
-  console.log(`stack   env=${stack.environment!.id} skill=${stack.skill!.id} agent=${stack.agent!.id} v${stack.agent!.version}`);
+  console.log(`stack   env=${stack.environment.id} skill=${stack.skill.id} agent=${stack.agent.id} v${stack.agent.version}`);
 
   const { sessionId, nonce } = await startSmokeSession({
     target,
-    agentId: stack.agent!.id,
-    agentVersion: stack.agent!.version,
-    environmentId: stack.environment!.id,
+    agentId: stack.agent.id,
+    agentVersion: stack.agent.version,
+    environmentId: stack.environment.id,
   });
   console.log(`session ${sessionId}  target=${target}  nonce=${nonce}`);
 

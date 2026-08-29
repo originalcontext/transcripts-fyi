@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { ArtifactFrame } from "@/components/app/artifact-frame";
@@ -9,7 +8,7 @@ import { SausageLayout } from "@/components/app/sausage-layout";
 import { Shell } from "@/components/app/shell";
 import { WorkingHero } from "@/components/app/working-hero";
 import { injectArtifactHead } from "@/lib/artifact/imports";
-import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
+import { viewerIsAdmin } from "@/lib/auth-server";
 import { activeRunFor, getSubject, latestArtifactFor, listUniverse } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
 import { timeAgo } from "@/lib/utils";
@@ -24,7 +23,7 @@ async function loadHotPath(key: string) {
     latestArtifactFor("ticker", key),
     activeRunFor("ticker", key, DISTILL_SKILL),
     listUniverse(),
-    isAdmin((await cookies()).get(ADMIN_COOKIE)?.value),
+    viewerIsAdmin(),
   ]);
   return { subject, artifact, run, universe, admin, hotPathMs: Math.round(performance.now() - t0) };
 }

@@ -77,7 +77,7 @@ export function SmokeRunner({ target }: { target: string }) {
             <ul className="mt-2 space-y-1 font-mono text-xs">
               {run.result.checks.map((c) => (
                 <li key={c.label} className={c.ok ? "text-green-700 dark:text-green-400" : "text-muted-foreground"}>
-                  {c.ok ? "PASS" : run.result!.done ? "FAIL" : "····"} {c.label}
+                  {c.ok ? "PASS" : run.result?.done ? "FAIL" : "····"} {c.label}
                 </li>
               ))}
               <li>

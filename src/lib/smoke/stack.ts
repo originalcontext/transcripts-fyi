@@ -25,6 +25,8 @@ export type SmokeStack = {
   skill: { id: string; version: string } | null;
   agent: { id: string; version: number; toolsCurrent: boolean } | null;
 };
+/** What ensureSmokeStack returns: every part present. */
+export type ReadySmokeStack = { [K in keyof SmokeStack]: NonNullable<SmokeStack[K]> };
 
 const shape = (target: DeployTarget, s: Awaited<ReturnType<typeof findStack>>): SmokeStack => ({
   target,
@@ -37,4 +39,12 @@ const shape = (target: DeployTarget, s: Awaited<ReturnType<typeof findStack>>): 
 });
 
 export const findSmokeStack = async (target: DeployTarget) => shape(target, await findStack(smokeSpec(target)));
-export const ensureSmokeStack = async (target: DeployTarget) => shape(target, await ensureStack(smokeSpec(target)));
+export const ensureSmokeStack = async (target: DeployTarget): Promise<ReadySmokeStack> => {
+  const s = await ensureStack(smokeSpec(target));
+  return {
+    target,
+    environment: { id: s.environmentId },
+    skill: { id: s.skillId, version: s.skillVersion },
+    agent: { id: s.agentId, version: s.agentVersion, toolsCurrent: true },
+  };
+};

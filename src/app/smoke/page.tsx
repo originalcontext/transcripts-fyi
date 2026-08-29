@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { logoutAction } from "@/app/login/actions";
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { deployTarget } from "@/lib/anthropic";
-import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
+import { viewerIsAdmin } from "@/lib/auth-server";
 import { listSmokeSessions } from "@/lib/smoke/session";
 import { findSmokeStack } from "@/lib/smoke/stack";
 import { checkStorage } from "@/lib/smoke/storage";
@@ -17,7 +16,7 @@ import { checkStorage } from "@/lib/smoke/storage";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  if (!(await isAdmin((await cookies()).get(ADMIN_COOKIE)?.value))) notFound();
+  if (!(await viewerIsAdmin())) notFound();
   const target = deployTarget();
   const stack = await findSmokeStack(target);
   const [sessions, storage] = await Promise.all([
