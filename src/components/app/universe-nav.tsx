@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 import tickers from "@/data/tickers.json";
+import { asTickerEntries } from "@/lib/tickers";
 import { cn } from "@/lib/utils";
 
 export type UniverseEntry = { id: string; key: string; hasArtifact: boolean; working: boolean };
 
 /** ticker → company name from the static top-3000 list. Server-only; never shipped to the client. */
-const NAMES = new Map<string, string>((tickers.tickers as [string, string][]).map(([t, n]) => [t, n]));
+const NAMES = new Map<string, string>(asTickerEntries(tickers.tickers).map(([t, n]) => [t, n]));
 
 /** The universe list. Rendered in the desktop sidebar and inside the mobile sheet. */
 export function UniverseNav({ universe, current }: { universe: UniverseEntry[]; current?: string }) {

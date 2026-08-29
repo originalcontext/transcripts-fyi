@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { anthropic, deployTarget } from "@/lib/anthropic";
 import { db, schema } from "@/lib/db";
 import { settleDistillSession } from "@/lib/distill/settle";
+import { errorMessage } from "@/lib/errors";
 import { settlePingPongSession } from "@/lib/smoke/ping-pong";
 
 /**
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
       // Release the dedupe row so Anthropic's retries (and the reconciler)
       // get another chance; a 5xx tells Anthropic to retry.
       await db.delete(schema.webhookEvents).where(eq(schema.webhookEvents.id, event.id)).catch(() => {});
-      console.error("webhook settle failed", { ...log, error: err instanceof Error ? err.message : String(err) });
+      console.error("webhook settle failed", { ...log, error: errorMessage(err) });
       return new Response("settle failed", { status: 500 });
     }
   } else {

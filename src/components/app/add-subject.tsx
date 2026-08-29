@@ -2,7 +2,7 @@
 
 import { Command as CommandPrimitive } from "cmdk";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { addSubjectAction } from "@/app/s/actions";
@@ -28,7 +28,17 @@ async function loadTickers(): Promise<Entry[]> {
  */
 export function AddSubject() {
   const router = useRouter();
-  const [state, action, pending] = useActionState(addSubjectAction, undefined);
+  const [, action, pending] = useActionState(
+    async (prev: { error?: string; key?: string } | undefined, fd: FormData) => {
+      const r = await addSubjectAction(prev, fd);
+      if (r.key) {
+        toast(`${r.key} added — report coming soon`, { description: "Reading the last 20 earnings calls — about half an hour." });
+        router.push(`/s/${r.key}`);
+      } else if (r.error) toast.error(r.error);
+      return r;
+    },
+    undefined,
+  );
   const [query, setQuery] = useState("");
   const [list, setList] = useState<Entry[] | null>(null);
   const [open, setOpen] = useState(false);
@@ -37,12 +47,6 @@ export function AddSubject() {
   const results = list ? search(list, query) : [];
   const showResults = open && query.trim().length > 0;
 
-  useEffect(() => {
-    if (state?.key) {
-      toast(`${state.key} added — report coming soon`, { description: "Distilling the last 20 earnings calls — a few minutes." });
-      router.push(`/s/${state.key}`);
-    } else if (state?.error) toast.error(state.error);
-  }, [state, router]);
 
   const choose = (ticker: string) => {
     setQuery(ticker);

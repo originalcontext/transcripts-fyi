@@ -1,5 +1,6 @@
 
 import { viewerIsAdmin } from "@/lib/auth-server";
+import { errorMessage } from "@/lib/errors";
 import { inspectSmokeSession } from "@/lib/smoke/session";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ sessionId: string }> }) {
@@ -10,6 +11,6 @@ export async function GET(_req: Request, ctx: { params: Promise<{ sessionId: str
     return Response.json(await inspectSmokeSession(sessionId));
   } catch (err) {
     console.error("inspect", err);
-    return Response.json({ error: err instanceof Error ? err.message : String(err) }, { status: 502 });
+    return Response.json({ error: errorMessage(err) }, { status: 502 });
   }
 }

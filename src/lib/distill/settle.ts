@@ -4,6 +4,7 @@ import { anthropic, deployTarget } from "@/lib/anthropic";
 import { deriveRunStatus, type RunStatus } from "@/lib/cma/events";
 import { answerPendingTools, listAllEvents } from "@/lib/cma/session";
 import { db, schema } from "@/lib/db";
+import { endRun } from "@/lib/distill/runs";
 import { APP } from "@/lib/distill/stack";
 import { runDistillTool } from "@/lib/distill/tools";
 
@@ -29,7 +30,7 @@ export async function settleDistillSession(sessionId: string): Promise<DistillSe
   if (run.status === "ended") return { action: "skipped", reason: "run-ended" };
   // A terminated or archived session accepts no events; answering would 409.
   if (session.status === "terminated" || session.archived_at) {
-    await db.update(schema.runs).set({ status: "ended", lastActivityAt: new Date() }).where(eq(schema.runs.id, run.id));
+    await endRun(run.id);
     return { action: "skipped", reason: "session-terminal" };
   }
 

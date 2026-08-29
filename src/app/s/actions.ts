@@ -1,15 +1,12 @@
 "use server";
 
-import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { anthropic, deployTarget } from "@/lib/anthropic";
+import { deployTarget } from "@/lib/anthropic";
 import { requireAdmin } from "@/lib/auth-server";
-import { db, schema } from "@/lib/db";
-import { addSubject, regenerateSubject } from "@/lib/distill/runs";
+import { addSubject, bumpRunBudget, regenerateSubject } from "@/lib/distill/runs";
 import { userMessage } from "@/lib/errors";
 
-const BUMP_CENTS = 500;
 
 export async function addSubjectAction(
   _prev: { error?: string; key?: string } | undefined,
@@ -28,21 +25,16 @@ export async function addSubjectAction(
   return { key }; // client pushes to /s/<key>; every page is force-dynamic, nothing to revalidate
 }
 
-export async function bumpBudgetAction(formData: FormData) {
+export async function bumpBudgetAction(_prev: { error?: string; ok?: true } | undefined, formData: FormData): Promise<{ error?: string; ok?: true }> {
   await requireAdmin();
-  const runId = String(formData.get("runId") ?? "");
-  const [run] = await db.select().from(schema.runs).where(eq(schema.runs.id, runId));
-  if (!run) return;
-  const s = await anthropic.beta.sessions.retrieve(run.cmaSessionId);
-  const consumed = Number(s.usage.list_cost?.amount ?? 0);
-  const current = Number(s.budget?.max_list_cost.amount ?? 0);
-  await anthropic.beta.sessions.update(run.cmaSessionId, {
-    budget: {
-      type: "limit",
-      max_list_cost: { amount: String(Math.max(current, consumed + 1) + BUMP_CENTS), currency: "USD" },
-    },
-  });
+  try {
+    await bumpRunBudget(String(formData.get("runId") ?? ""));
+  } catch (err) {
+    console.error("bumpBudgetAction", err);
+    return { error: userMessage(err) };
+  }
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 

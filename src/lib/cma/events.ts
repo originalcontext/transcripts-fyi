@@ -1,5 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 
+import type { RunStatus } from "@/lib/db/schema";
+
 /**
  * Pure functions over a session's event log. No I/O, no env — this is the
  * idempotency core the webhook relies on, so it is unit-tested against a
@@ -10,7 +12,7 @@ export type SessionEvent = Anthropic.Beta.Sessions.BetaManagedAgentsSessionEvent
 export type CustomToolUse = Extract<SessionEvent, { type: "agent.custom_tool_use" }>;
 export type StopReason = "requires_action" | "end_turn" | "retries_exhausted" | "budget_reached";
 export type SessionStatus = "rescheduling" | "running" | "idle" | "terminated";
-export type RunStatus = "working" | "idle" | "budget_reached" | "ended";
+export type { RunStatus } from "@/lib/db/schema";
 
 /** Custom-tool calls that have no matching `user.custom_tool_result` yet. */
 export function unansweredToolUses(events: SessionEvent[]): CustomToolUse[] {

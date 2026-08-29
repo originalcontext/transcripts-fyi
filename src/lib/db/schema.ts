@@ -30,6 +30,10 @@ export const subjects = pgTable(
   (t) => [uniqueIndex("subjects_kind_key").on(t.kind, t.key)],
 );
 
+export const RUN_STATUSES = ["working", "idle", "budget_reached", "ended"] as const;
+/** working | idle | budget_reached | ended — written by the webhook settler and the reconciler; the mainline only reads it. */
+export type RunStatus = (typeof RUN_STATUSES)[number];
+
 /** One long-lived CMA session bound to a subject and a skill. At most one live (non-ended) run per subject × skill — enforced by a partial unique index. */
 export const runs = pgTable(
   "runs",
@@ -44,7 +48,7 @@ export const runs = pgTable(
   cmaEnvironmentId: text("cma_environment_id").notNull(),
   cmaSkillVersion: text("cma_skill_version"),
   /** Maintained by the webhook: working | idle | budget_reached | ended. The mainline reads only this. */
-  status: text("status").notNull().default("working"),
+  status: text("status", { enum: RUN_STATUSES }).notNull().default("working"),
   listCostCents: integer("list_cost_cents").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   lastActivityAt: timestamp("last_activity_at", { withTimezone: true }).notNull().defaultNow(),

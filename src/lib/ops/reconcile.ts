@@ -1,12 +1,14 @@
-import { asc, eq, ne } from "drizzle-orm";
+import { asc, ne } from "drizzle-orm";
 
 import { anthropic, deployTarget } from "@/lib/anthropic";
 import { isNotFound } from "@/lib/cma/errors";
 import { deriveRunStatus, unansweredToolUses } from "@/lib/cma/events";
 import { listAllEvents, quietMinutes } from "@/lib/cma/session";
 import { db, schema } from "@/lib/db";
+import { endRun } from "@/lib/distill/runs";
 import { settleDistillSession } from "@/lib/distill/settle";
 import { APP } from "@/lib/distill/stack";
+import { errorMessage } from "@/lib/errors";
 
 /**
  * Reconciler — belt and suspenders under the webhook.
@@ -56,7 +58,7 @@ export async function reconcile(opts: { apply?: boolean } = {}): Promise<Reconci
       await reconcileRun(run, { apply, findings, applied });
     } catch (err) {
       // One bad run must not abort the pass for the others.
-      findings.push({ kind: "error", runId: run.id, error: err instanceof Error ? err.message : String(err) });
+      findings.push({ kind: "error", runId: run.id, error: errorMessage(err) });
     }
   }
 
@@ -100,7 +102,7 @@ async function reconcileRun(run: Run, { apply, findings, applied }: Ctx) {
   try {
     session = await anthropic.beta.sessions.retrieve(run.cmaSessionId);
   } catch (err) {
-    const error = err instanceof Error ? err.message : String(err);
+    const error = errorMessage(err);
     // Only a 404 means the session is gone. A 429/5xx/network error means
     // CMA is unreachable right now — leave the run alone and try next pass.
     if (!isNotFound(err)) {
@@ -109,7 +111,7 @@ async function reconcileRun(run: Run, { apply, findings, applied }: Ctx) {
     }
     findings.push({ kind: "missing", runId: run.id, sessionId: run.cmaSessionId, error });
     if (apply) {
-      await db.update(schema.runs).set({ status: "ended", lastActivityAt: new Date() }).where(eq(schema.runs.id, run.id));
+      await endRun(run.id);
       applied.push(`ended run ${run.id} (session missing)`);
     }
     return;
@@ -142,7 +144,7 @@ async function reconcileRun(run: Run, { apply, findings, applied }: Ctx) {
     if (!apply) return;
     if (action === "give-up") {
       await anthropic.beta.sessions.events.send(run.cmaSessionId, { events: [{ type: "user.interrupt" }] }).catch(() => {});
-      await db.update(schema.runs).set({ status: "ended", lastActivityAt: new Date() }).where(eq(schema.runs.id, run.id));
+      await endRun(run.id);
       applied.push(`gave up on hung run ${run.id} after ${nudges} nudges`);
       return;
     }

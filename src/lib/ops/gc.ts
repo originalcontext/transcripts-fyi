@@ -1,7 +1,8 @@
-import { and, eq, lt } from "drizzle-orm";
+import { and, count, eq, lt } from "drizzle-orm";
 
 import { anthropic } from "@/lib/anthropic";
 import { db, schema } from "@/lib/db";
+import { errorMessage } from "@/lib/errors";
 
 /**
  * Garbage collection. Sessions of ended runs get archived after a grace
@@ -34,7 +35,7 @@ export async function gc(opts: { apply?: boolean } = {}): Promise<GcReport> {
       if (apply) await anthropic.beta.sessions.archive(run.cmaSessionId);
       report.archivedSessions.push(run.cmaSessionId);
     } catch (err) {
-      report.skipped.push(`${run.cmaSessionId}: ${err instanceof Error ? err.message : String(err)}`);
+      report.skipped.push(`${run.cmaSessionId}: ${errorMessage(err)}`);
     }
   }
 
@@ -43,11 +44,7 @@ export async function gc(opts: { apply?: boolean } = {}): Promise<GcReport> {
     const deleted = await db.delete(schema.webhookEvents).where(lt(schema.webhookEvents.receivedAt, ttl)).returning({ id: schema.webhookEvents.id });
     report.prunedWebhookEvents = deleted.length;
   } else {
-    const [{ n }] = await db
-      .select({ n: schema.webhookEvents.id })
-      .from(schema.webhookEvents)
-      .where(lt(schema.webhookEvents.receivedAt, ttl))
-      .then((rows) => [{ n: rows.length }]);
+    const [{ n }] = await db.select({ n: count() }).from(schema.webhookEvents).where(lt(schema.webhookEvents.receivedAt, ttl));
     report.prunedWebhookEvents = n;
   }
   return report;

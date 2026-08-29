@@ -16,6 +16,15 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     },
   },
+  {
+    // The line: only the CMA side may touch the Anthropic client. Pages, components and
+    // mainline actions read Postgres only. Add a directory here only with a reason.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/lib/cma/**", "src/lib/distill/**", "src/lib/ops/**", "src/lib/smoke/**", "src/app/webhook/**", "src/lib/anthropic.ts"],
+    rules: {
+      "no-restricted-imports": ["error", { paths: [{ name: "@/lib/anthropic", importNames: ["anthropic"], message: "Mainline code reads Postgres only; CMA access lives under lib/cma, lib/distill, lib/ops, lib/smoke and app/webhook." }] }],
+    },
+  },
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "drizzle/**"]),
 ]);
 

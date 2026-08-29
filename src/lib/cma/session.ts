@@ -1,5 +1,6 @@
 import { anthropic } from "@/lib/anthropic";
 import { type CustomToolUse, type SessionEvent, unansweredToolUses } from "@/lib/cma/events";
+import { errorMessage } from "@/lib/errors";
 
 /** Full event log of a session (paginated by the SDK). */
 export async function listAllEvents(sessionId: string): Promise<SessionEvent[]> {
@@ -22,7 +23,7 @@ export async function answerPendingTools(sessionId: string, events: SessionEvent
   const results = await Promise.all(
     pending.map(async (call) => {
       const { result, isError } = await run(call).catch((err: unknown): ToolResult => ({
-        result: { error: err instanceof Error ? err.message : String(err) },
+        result: { error: errorMessage(err) },
         isError: true,
       }));
       return {

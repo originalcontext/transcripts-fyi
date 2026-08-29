@@ -1,6 +1,7 @@
 import { count, sql } from "drizzle-orm";
 
 import { db, schema } from "@/lib/db";
+import { errorMessage } from "@/lib/errors";
 import { key, redis } from "@/lib/redis";
 
 export type StorageCheck = { name: string; ok: boolean; detail: string };
@@ -12,7 +13,7 @@ async function checkPostgres(): Promise<StorageCheck> {
     const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@unknown/").host;
     return { name: "postgres (neon http)", ok: true, detail: `${host} · now=${now} · webhook_events=${n}` };
   } catch (err) {
-    return { name: "postgres (neon http)", ok: false, detail: err instanceof Error ? err.message : String(err) };
+    return { name: "postgres (neon http)", ok: false, detail: errorMessage(err) };
   }
 }
 
@@ -23,7 +24,7 @@ async function checkRedis(): Promise<StorageCheck> {
     const host = new URL(process.env.KV_REST_API_URL ?? "https://unknown").host;
     return { name: "redis (upstash rest)", ok: true, detail: `${host} · ${k}=${hits}` };
   } catch (err) {
-    return { name: "redis (upstash rest)", ok: false, detail: err instanceof Error ? err.message : String(err) };
+    return { name: "redis (upstash rest)", ok: false, detail: errorMessage(err) };
   }
 }
 

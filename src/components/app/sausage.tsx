@@ -1,26 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { bumpBudgetAction } from "@/app/s/actions";
 import { RequestUpdate } from "@/components/app/request-update";
 import { Button } from "@/components/ui/button";
-
-type Trace = {
-  run: { id: string; cmaSessionId: string; cmaAgentId: string; cmaAgentVersion: number; cmaSkillVersion: string | null };
-  trace: {
-    status: string;
-    stop: string | null;
-    listCostCents: number;
-    budgetCents: number;
-    wallS: number;
-    modelRequests: number;
-    tokens: { in: number; cacheRead: number; cacheWrite: number; out: number };
-    eventCount: number;
-    events: { id: string; type: string; at: string | null; elapsedS: number | null; detail: string }[];
-    traceUrl: string;
-  };
-};
+import type { TraceResponse as Trace } from "@/lib/distill/trace";
 
 /**
  * "How the sausage was made." Fetched after mount so the page's server render
@@ -31,6 +16,15 @@ export function Sausage({ runId, subjectId, live }: { runId: string; subjectId: 
   const [data, setData] = useState<Trace | null>(null);
   const [state, setState] = useState<"loading" | "ok" | "forbidden" | "error">("loading");
   const [fetchMs, setFetchMs] = useState<number | null>(null);
+  const [version, setVersion] = useState(0); // bumped after a budget change so the pane refetches even when not live
+  const [bump, bumpAction, bumping] = useActionState(
+    async (prev: { error?: string; ok?: true } | undefined, fd: FormData) => {
+      const r = await bumpBudgetAction(prev, fd);
+      if (r.ok) setVersion((v) => v + 1);
+      return r;
+    },
+    undefined,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -50,7 +44,7 @@ export function Sausage({ runId, subjectId, live }: { runId: string; subjectId: 
       cancelled = true;
       if (t) clearInterval(t);
     };
-  }, [runId, live]);
+  }, [runId, live, version]);
 
   if (state === "forbidden") return null;
   if (state === "loading") return <p className="text-muted-foreground">loading trace…</p>;
@@ -82,11 +76,12 @@ export function Sausage({ runId, subjectId, live }: { runId: string; subjectId: 
         <dd>{run.cmaSkillVersion ?? "—"}</dd>
       </dl>
       <div className="mb-3 flex flex-wrap gap-2">
-        <form action={bumpBudgetAction}>
+        <form action={bumpAction} className="inline-flex items-center gap-2">
           <input type="hidden" name="runId" value={run.id} />
-          <Button type="submit" size="sm" variant={trace.stop === "budget_reached" ? "default" : "outline"}>
-            {trace.stop === "budget_reached" ? "Budget reached — bump +$5" : "Bump budget +$5"}
+          <Button type="submit" size="sm" disabled={bumping} variant={trace.stop === "budget_reached" ? "default" : "outline"}>
+            {bumping ? "Bumping…" : trace.stop === "budget_reached" ? "Budget reached — bump +$5" : "Bump budget +$5"}
           </Button>
+          {bump?.error && <span className="text-destructive">{bump.error}</span>}
         </form>
         <RequestUpdate subjectId={subjectId} label="Regenerate" variant="outline" />
       </div>

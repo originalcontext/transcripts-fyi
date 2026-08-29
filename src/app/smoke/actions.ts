@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 
 import { deployTarget } from "@/lib/anthropic";
 import { requireAdmin } from "@/lib/auth-server";
+import { errorMessage } from "@/lib/errors";
 import { startSmokeSession } from "@/lib/smoke/session";
 import { ensureSmokeStack, findSmokeStack } from "@/lib/smoke/stack";
 
 function message(err: unknown) {
-  return err instanceof Error ? err.message : String(err);
+  return errorMessage(err);
 }
 
 

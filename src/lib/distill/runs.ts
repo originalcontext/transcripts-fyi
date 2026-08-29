@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 
+import { NeonDbError } from "@neondatabase/serverless";
 import { and, count, eq, ne } from "drizzle-orm";
 
 import { anthropic, type DeployTarget } from "@/lib/anthropic";
@@ -9,11 +10,31 @@ import { db, schema } from "@/lib/db";
 import { activeRun, getSubject } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
 import { APP, distillSpec, ensureDistillStack } from "@/lib/distill/stack";
-import { UserError } from "@/lib/errors";
+import { errorMessage,UserError } from "@/lib/errors";
 
 const RUN_BUDGET_CENTS = 2500; // $25 per run (20 quarters; NVDA measured ~$9.50)
 const MAX_SUBJECTS = 100; // shared universe, trusted invitees — a ceiling, not a quota
 const MAX_REGENERATIONS = 10; // per subject, beyond the first run
+const BUMP_CENTS = 500;
+
+const isUniqueViolation = (err: unknown) => err instanceof NeonDbError && err.code === "23505";
+
+/** The one way a run stops being live. */
+export async function endRun(runId: string) {
+  await db.update(schema.runs).set({ status: "ended", lastActivityAt: new Date() }).where(eq(schema.runs.id, runId));
+}
+
+/** Raise a run's spend cap by $5 above the higher of the current cap and consumed cost. */
+export async function bumpRunBudget(runId: string) {
+  const [run] = await db.select().from(schema.runs).where(eq(schema.runs.id, runId));
+  if (!run) throw new UserError("That run no longer exists.");
+  const s = await anthropic.beta.sessions.retrieve(run.cmaSessionId);
+  const consumed = Number(s.usage.list_cost?.amount ?? 0);
+  const current = Number(s.budget?.max_list_cost.amount ?? 0);
+  const next = Math.max(current, consumed + 1) + BUMP_CENTS;
+  await anthropic.beta.sessions.update(run.cmaSessionId, { budget: { type: "limit", max_list_cost: { amount: String(next), currency: "USD" } } });
+  return next;
+}
 
 type Subject = typeof schema.subjects.$inferSelect;
 
@@ -54,7 +75,7 @@ async function startRun(subject: Subject, target: DeployTarget) {
     });
   } catch (err) {
     await anthropic.beta.sessions.archive(session.id).catch(() => {}); // idle session, nothing spent
-    if (/runs_one_live_per_subject_skill|unique/i.test(err instanceof Error ? err.message : "")) throw new UserError(`${key} is already being distilled.`);
+    if (isUniqueViolation(err)) throw new UserError(`${key} is already being distilled.`);
     throw err;
   }
   await anthropic.beta.sessions.events.send(session.id, {
@@ -91,9 +112,9 @@ export async function regenerateSubject(subjectId: string, target: DeployTarget)
     // If the old session cannot be archived, stop: marking it ended would leave it spending unseen.
     await anthropic.beta.sessions.archive(r.cmaSessionId).catch((err: unknown) => {
       if (isNotFound(err) || /archived|terminated/i.test(err instanceof Error ? err.message : "")) return;
-      throw new UserError(`Could not archive the current run (${err instanceof Error ? err.message : String(err)}). Try again in a minute.`);
+      throw new UserError(`Could not archive the current run (${errorMessage(err)}). Try again in a minute.`);
     });
-    await db.update(schema.runs).set({ status: "ended", lastActivityAt: new Date() }).where(eq(schema.runs.id, r.id));
+    await endRun(r.id);
   }
   return startRun(subject, target);
 }
