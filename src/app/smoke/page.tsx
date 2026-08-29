@@ -7,14 +7,14 @@ import { logoutAction } from "@/app/login/actions";
 import { SmokeRunner } from "@/app/smoke/smoke-runner";
 import { deployTarget } from "@/lib/anthropic";
 import { listSmokeSessions } from "@/lib/smoke/session";
-import { findStack } from "@/lib/smoke/stack";
+import { findSmokeStack } from "@/lib/smoke/stack";
 import { checkStorage } from "@/lib/smoke/storage";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const target = deployTarget();
-  const stack = await findStack(target);
+  const stack = await findSmokeStack(target);
   const [sessions, storage] = await Promise.all([
     stack.agent ? listSmokeSessions(stack.agent.id) : Promise.resolve([]),
     checkStorage(),
@@ -54,7 +54,7 @@ export default async function Home() {
         <CardContent className="space-y-3">
         <Table className="font-mono text-xs">
           <TableBody>
-            <Row k="environment" v={stack.environment ? `${stack.environment.id}  ${stack.environment.name}` : null} />
+            <Row k="environment" v={stack.environment?.id ?? null} />
             <Row k="skill" v={stack.skill ? `${stack.skill.id}  ${stack.skill.version}` : null} />
             <Row k="agent" v={stack.agent ? `${stack.agent.id}  v${stack.agent.version}${stack.agent.toolsCurrent ? "" : "  (tools out of date)"}` : null} />
           </TableBody>

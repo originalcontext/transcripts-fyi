@@ -144,3 +144,16 @@ export async function listSmokeSessions(agentId: string, limit = 10) {
       listCostCents: Number(s.usage.list_cost?.amount ?? 0),
     }));
 }
+
+/** Poll until the smoke run can no longer change. Used by the CLI; the page polls /api/smoke instead. */
+export async function waitForSmokeSession(sessionId: string, opts: { timeoutMs?: number; pollMs?: number; onTick?: (i: SmokeInspection) => void } = {}) {
+  const { timeoutMs = 4 * 60_000, pollMs = 2_000, onTick } = opts;
+  const started = Date.now();
+  for (;;) {
+    if (Date.now() - started > timeoutMs) throw new Error(`timed out after ${timeoutMs / 1000}s`);
+    await new Promise((r) => setTimeout(r, pollMs));
+    const result = await inspectSmokeSession(sessionId);
+    onTick?.(result);
+    if (result.done) return { result, elapsedS: (Date.now() - started) / 1000 };
+  }
+}

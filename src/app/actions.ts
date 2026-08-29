@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { deployTarget } from "@/lib/anthropic";
 import { startSmokeSession } from "@/lib/smoke/session";
-import { ensureStack, findStack } from "@/lib/smoke/stack";
+import { ensureSmokeStack, findSmokeStack } from "@/lib/smoke/stack";
 
 function message(err: unknown) {
   return err instanceof Error ? err.message : String(err);
@@ -11,7 +11,7 @@ function message(err: unknown) {
 
 export async function createStackAction() {
   try {
-    await ensureStack(deployTarget());
+    await ensureSmokeStack(deployTarget());
   } catch (err) {
     console.error("createStackAction", err);
     throw err; // surfaces as the route's error boundary; nothing to persist
@@ -22,7 +22,7 @@ export async function createStackAction() {
 export async function runSmokeAction(): Promise<{ sessionId: string } | { error: string }> {
   const target = deployTarget();
   try {
-    const stack = await findStack(target);
+    const stack = await findSmokeStack(target);
     if (!stack.agent || !stack.environment) return { error: "stack not created yet" };
     const { sessionId } = await startSmokeSession({
       target,
