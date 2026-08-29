@@ -139,3 +139,16 @@
 html[data-sausage="0"] .sausage-drawer {
   translate: calc(100% - 1.5rem) 0;
 }
+
+/* Working hero: each line from a call into the explainer pulses on its own beat. */
+@keyframes working-line {
+  0%, 100% { stroke-opacity: 0.12; }
+  50% { stroke-opacity: 0.85; }
+}
+.working-line {
+  stroke-opacity: 0.12;
+  animation: working-line 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .working-line { animation: none; stroke-opacity: 0.35; }
+}
