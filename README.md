@@ -18,7 +18,7 @@ Prod: https://transcripts.fyi · Dev: `npm run dev` + ngrok → `/webhook`
 - **Storage** — Neon over HTTP (drizzle), Upstash over REST. Migrations in `drizzle/`, applied by `vercel-build` per environment.
 - **Auth** — invite code in `INVITE_CODE`, checked in `proxy.ts`, stateless HMAC session cookie. Root `/` is the splash; `?invite=` prefills.
 - **UI kit** — shadcn (Radix primitives, nova preset, neutral, CSS vars), lucide icons, next-themes (class strategy, system default), sonner toasts. Components live in `src/components/ui/`; add more with `npx shadcn add <name>`.
-- **Quality gate** — `npm run check` = typecheck + eslint (import order, unused imports) + vitest + knip; runs on `git push` via `.githooks/pre-push` (`prepare` sets `core.hooksPath`). One test file covers the idempotency core (`unansweredToolUses`, `deriveRunStatus`) against a captured real session log.
+- **Quality gate** — `npm run check` = typecheck + eslint (import order, unused imports) + vitest + knip; runs on `git push` via `.githooks/pre-push` (`prepare` sets `core.hooksPath`) and in GitHub Actions (`ci.yml`). One test file covers the idempotency core (`unansweredToolUses`, `deriveRunStatus`) against a captured real session log. `npm run e2e` = 8 Playwright tests (auth gate, login, `/webhook` signature rejection, cron 401s) against a built app on :3100 with dummy backend env — no secrets; runs in `e2e.yml`. No branch protection yet; Vercel still auto-deploys `main`.
 - **Docs** — `docs/managed-agents/` local reference, verified against live docs 2026-08-29. Sprint notes in `docs/sprints/`. **Start at `docs/app/README.md`** (index) and `docs/app/runbook.md` (operations).
 
 - **Responsive shell** — below `md` the universe is a left sheet and the sausage a right sheet; at `md`+ the sausage is a retractable panel (state remembered per viewer via `useSyncExternalStore` over localStorage). No data or action changes.
@@ -81,7 +81,8 @@ npm run dev                      # http://localhost:3000 (needs .env.local via `
 npm run distill -- NVDA           # CLI twin of "Add to universe"
 npm run smoke:run -- --target dev # /smoke page, CLI twin
 npm run smoke:storage
-npm run check                    # typecheck + lint + test + knip (also the pre-push hook)
+npm run check                    # typecheck + lint + test + knip (also the pre-push hook and CI)
+npm run e2e                      # Playwright, builds + starts on :3100, no secrets needed
 npm run reconcile                # dry-run reconciler (--apply to repair); cron does this every 5 min
 npm run gc                       # dry-run GC (--apply); cron does this daily
 npm run db:generate && npm run db:migrate   # dev only
