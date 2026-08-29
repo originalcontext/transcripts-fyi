@@ -3,13 +3,17 @@ import { SmokeRunner } from "@/app/smoke-runner";
 import { deployTarget } from "@/lib/anthropic";
 import { listSmokeSessions } from "@/lib/smoke/session";
 import { findStack } from "@/lib/smoke/stack";
+import { checkStorage } from "@/lib/smoke/storage";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const target = deployTarget();
   const stack = await findStack(target);
-  const sessions = stack.agent ? await listSmokeSessions(stack.agent.id) : [];
+  const [sessions, storage] = await Promise.all([
+    stack.agent ? listSmokeSessions(stack.agent.id) : Promise.resolve([]),
+    checkStorage(),
+  ]);
 
   return (
     <main className="mx-auto max-w-2xl space-y-8 p-8">
@@ -19,6 +23,20 @@ export default async function Home() {
           Managed Agents smoke · target <code className="font-mono">{target}</code>
         </p>
       </header>
+
+      <section className="space-y-2 text-sm">
+        <h2 className="font-medium">Storage</h2>
+        <table className="w-full font-mono text-xs">
+          <tbody>
+            {storage.map((c) => (
+              <tr key={c.name}>
+                <td className="py-0.5 pr-4 text-neutral-500">{c.name}</td>
+                <td className={`py-0.5 ${c.ok ? "" : "text-red-600"}`}>{c.ok ? "OK" : "FAIL"} · {c.detail}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
 
       <section className="space-y-2 text-sm">
         <h2 className="font-medium">Stack</h2>

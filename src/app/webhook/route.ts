@@ -1,4 +1,5 @@
-import { anthropic } from "@/lib/anthropic";
+import { anthropic, deployTarget } from "@/lib/anthropic";
+import { db, schema } from "@/lib/db";
 import { settlePingPongSession } from "@/lib/smoke/ping-pong";
 
 /**
@@ -32,8 +33,18 @@ export async function POST(request: Request) {
 
   const log = { id: event.id, type: event.data.type, resource: event.data.id };
 
-  // No event-id dedupe yet (needs a store). Handlers below are idempotent
-  // against the session's own event log, which covers retries for now.
+  // Dedupe on event.id (retries reuse it). Each deployment records its own
+  // copy — dev and prod both receive every event. Handlers stay idempotent
+  // against the session's event log regardless, so this is belt-and-braces.
+  const inserted = await db
+    .insert(schema.webhookEvents)
+    .values({ id: event.id, type: event.data.type, resource: event.data.id, target: deployTarget() })
+    .onConflictDoNothing()
+    .returning({ id: schema.webhookEvents.id });
+  if (inserted.length === 0) {
+    console.log("webhook", { ...log, action: "duplicate" });
+    return new Response(null, { status: 204 });
+  }
   switch (event.data.type) {
     case "session.status_idled":
     case "session.requires_action": {

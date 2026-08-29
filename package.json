@@ -7,10 +7,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "smoke:run": "tsx --env-file=.env.local scripts/smoke/run.ts"
+    "smoke:run": "tsx --env-file=${ENV_FILE:-.env.local} scripts/smoke/run.ts",
+    "smoke:storage": "tsx --env-file=${ENV_FILE:-.env.local} scripts/smoke/storage.ts",
+    "db:generate": "node --env-file=${ENV_FILE:-.env.local} node_modules/drizzle-kit/bin.cjs generate",
+    "db:migrate": "node --env-file=${ENV_FILE:-.env.local} node_modules/drizzle-kit/bin.cjs migrate",
+    "vercel-build": "drizzle-kit migrate && next build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
+    "@neondatabase/serverless": "^1.1.0",
+    "@upstash/redis": "^1.38.3",
+    "drizzle-orm": "^0.45.2",
     "next": "16.3.3",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -20,6 +27,7 @@
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
