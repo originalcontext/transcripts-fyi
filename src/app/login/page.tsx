@@ -11,7 +11,7 @@ export default async function Login({
       <div className="w-full max-w-sm space-y-6">
         <header className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight">transcripts.fyi</h1>
-          <p className="text-neutral-500">Understand a company through its earnings calls.</p>
+          <p className="text-muted-foreground">Understand a company through its earnings calls.</p>
         </header>
         <LoginForm next={next} invite={invite} />
       </div>
