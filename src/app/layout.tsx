@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description: "Understand a company through its earnings calls.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // suppressHydrationWarning: next-themes sets the class on <html> before hydration.
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
