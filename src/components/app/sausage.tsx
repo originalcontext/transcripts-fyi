@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-import { bumpBudgetAction, regenerateAllAction, regenerateSubjectAction } from "@/app/s/actions";
+import { bumpBudgetAction } from "@/app/s/actions";
+import { RequestUpdate } from "@/components/app/request-update";
 import { Button } from "@/components/ui/button";
 
 type Trace = {
@@ -87,13 +88,7 @@ export function Sausage({ runId, subjectId, live }: { runId: string; subjectId: 
             {trace.stop === "budget_reached" ? "Budget reached — bump +$5" : "Bump budget +$5"}
           </Button>
         </form>
-        <form action={regenerateSubjectAction} onSubmit={(e) => !confirm("End this run and re-distill on the current skill/agent?") && e.preventDefault()}>
-          <input type="hidden" name="subjectId" value={subjectId} />
-          <Button type="submit" size="sm" variant="outline">Regenerate</Button>
-        </form>
-        <form action={regenerateAllAction} onSubmit={(e) => !confirm("Re-distill EVERY subject in the universe? (~$1.50 each)") && e.preventDefault()}>
-          <Button type="submit" size="sm" variant="outline">Regenerate all</Button>
-        </form>
+        <RequestUpdate subjectId={subjectId} label="Regenerate" variant="outline" />
       </div>
       <ol className="space-y-1 font-mono">
         {trace.events.map((e) => (

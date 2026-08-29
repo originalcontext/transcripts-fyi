@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { anthropic, deployTarget } from "@/lib/anthropic";
 import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
-import { addSubject, regenerateAll, regenerateSubject } from "@/lib/distill/add";
+import { addSubject, regenerateSubject } from "@/lib/distill/add";
 
 const BUMP_CENTS = 500;
 
@@ -30,6 +30,7 @@ export async function addSubjectAction(
 }
 
 export async function bumpBudgetAction(formData: FormData) {
+  await requireAdmin();
   const runId = String(formData.get("runId") ?? "");
   const [run] = await db.select().from(schema.runs).where(eq(schema.runs.id, runId));
   if (!run) return;
@@ -49,14 +50,16 @@ async function requireAdmin() {
   if (!(await isAdmin((await cookies()).get(ADMIN_COOKIE)?.value))) throw new Error("admin only");
 }
 
-export async function regenerateSubjectAction(formData: FormData) {
+export async function regenerateSubjectAction(
+  _prev: { error?: string } | undefined,
+  formData: FormData,
+): Promise<{ error?: string; ok?: true }> {
   await requireAdmin();
-  await regenerateSubject(String(formData.get("subjectId") ?? ""), deployTarget());
+  try {
+    await regenerateSubject(String(formData.get("subjectId") ?? ""), deployTarget());
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
   revalidatePath("/", "layout");
-}
-
-export async function regenerateAllAction() {
-  await requireAdmin();
-  await regenerateAll(deployTarget());
-  revalidatePath("/", "layout");
+  return { ok: true };
 }

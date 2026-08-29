@@ -54,9 +54,9 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
                 <span>Paused (budget)</span>
               ) : run?.status === "ended" ? (
                 <span>Ended</span>
-              ) : (
+              ) : admin ? (
                 <RequestUpdate subjectId={subject.id} />
-              )}
+              ) : null}
             </span>
           </div>
         }
@@ -66,7 +66,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
           <ArtifactFrame title={`${subject.key} explainer`} srcDoc={injectArtifactHead(artifact.content)} />
         ) : (
           <div className="flex flex-1 items-center justify-center p-6 text-center text-neutral-400">
-            {working ? "Reading the last eight calls…" : "Nothing here yet."}
+            {working ? "Reading the last twenty calls…" : "Nothing here yet."}
           </div>
         )}
       </SausageLayout>

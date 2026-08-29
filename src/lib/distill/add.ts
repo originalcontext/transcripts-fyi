@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-import { and, eq, ne } from "drizzle-orm";
+import { and, count, eq, ne } from "drizzle-orm";
 
 import { anthropic, type DeployTarget } from "@/lib/anthropic";
 import { db, schema } from "@/lib/db";
@@ -9,6 +9,8 @@ import { DISTILL_SKILL } from "@/lib/distill/skill";
 import { APP, ensureDistillStack } from "@/lib/distill/stack";
 
 const RUN_BUDGET_CENTS = 1500; // $15 per run (20 quarters)
+const MAX_SUBJECTS = 100; // shared universe, trusted invitees — a ceiling, not a quota
+const MAX_REGENERATIONS = 10; // per subject, beyond the first run
 
 type Subject = typeof schema.subjects.$inferSelect;
 
@@ -45,6 +47,9 @@ async function startRun(subject: Subject, target: DeployTarget) {
 export async function regenerateSubject(subjectId: string, target: DeployTarget) {
   const [subject] = await db.select().from(schema.subjects).where(eq(schema.subjects.id, subjectId));
   if (!subject) throw new Error("no such subject");
+  const [{ n: priorRuns }] = await db.select({ n: count() }).from(schema.runs).where(eq(schema.runs.subjectId, subjectId));
+  if (priorRuns - 1 >= MAX_REGENERATIONS)
+    throw new Error(`${subject.key} has been regenerated ${MAX_REGENERATIONS} times — that's the limit for now.`);
   const live = await db
     .select()
     .from(schema.runs)
@@ -56,22 +61,18 @@ export async function regenerateSubject(subjectId: string, target: DeployTarget)
   return startRun(subject, target);
 }
 
-export async function regenerateAll(target: DeployTarget) {
-  const all = await db.select().from(schema.subjects);
-  for (const s of all) await regenerateSubject(s.id, target);
-  return all.length;
-}
-
 /** Add a ticker to the universe and start its distillation run if none is active. */
 export async function addSubject(key: string, target: DeployTarget) {
   let subject = await getSubject("ticker", key);
-    if (!subject) {
+  if (!subject) {
+    const [{ n }] = await db.select({ n: count() }).from(schema.subjects);
+    if (n >= MAX_SUBJECTS) throw new Error(`The universe is full (${MAX_SUBJECTS} companies).`);
     await db
       .insert(schema.subjects)
       .values({ id: crypto.randomUUID(), kind: "ticker", key, displayName: key })
       .onConflictDoNothing();
     subject = await getSubject("ticker", key);
-    }
+  }
   if (!subject) throw new Error("could not create subject");
 
   if (!(await activeRun(subject.id, DISTILL_SKILL))) await startRun(subject, target);

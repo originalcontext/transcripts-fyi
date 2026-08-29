@@ -52,7 +52,7 @@ export function AddSubject() {
 
   useEffect(() => {
     if (state?.key) {
-      toast(`${state.key} added — report coming soon`, { description: "Distilling the last 8 earnings calls." });
+      toast(`${state.key} added — report coming soon`, { description: "Distilling the last 20 earnings calls — a few minutes." });
       router.push(`/s/${state.key}`);
     } else if (state?.error) toast.error(state.error);
   }, [state, router]);

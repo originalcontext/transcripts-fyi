@@ -8,7 +8,7 @@ import { runDistillTool } from "@/lib/distill/tools";
 import { listAllEvents } from "@/lib/smoke/ping-pong";
 
 export type DistillSettle =
-  | { action: "skipped"; reason: "not-ours" | "other-target" | "unknown-run" }
+  | { action: "skipped"; reason: "not-ours" | "other-target" | "unknown-run" | "run-ended" | "session-terminal" }
   | { action: "synced"; runId: string; status: RunStatus; tools: string[] };
 
 /**
@@ -25,6 +25,13 @@ export async function settleDistillSession(sessionId: string): Promise<DistillSe
 
   const [run] = await db.select().from(schema.runs).where(eq(schema.runs.id, m.run_id));
   if (!run) return { action: "skipped", reason: "unknown-run" };
+  // A late/reordered delivery for a run we already ended must not resurrect it.
+  if (run.status === "ended") return { action: "skipped", reason: "run-ended" };
+  // A terminated or archived session accepts no events; answering would 409.
+  if (session.status === "terminated" || session.archived_at) {
+    await db.update(schema.runs).set({ status: "ended", lastActivityAt: new Date() }).where(eq(schema.runs.id, run.id));
+    return { action: "skipped", reason: "session-terminal" };
+  }
 
   const events = await listAllEvents(sessionId);
   const pending = unansweredToolUses(events);

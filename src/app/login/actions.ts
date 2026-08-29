@@ -20,7 +20,8 @@ export async function loginAction(_prev: { error?: string } | undefined, formDat
   };
   jar.set(SESSION_COOKIE, await sessionToken(), opts);
   if (isAdminInvite(code)) jar.set(ADMIN_COOKIE, await adminToken(), opts);
-  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/");
+  // Same-origin paths only: one leading slash, no "//" and no backslash (URL parsers treat "/\x" as "//x").
+  redirect(/^\/(?![\/\\])[^\\]*$/.test(next) ? next : "/");
 }
 
 export async function logoutAction() {

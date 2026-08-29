@@ -1,3 +1,5 @@
+import { eq } from "drizzle-orm";
+
 import { anthropic, deployTarget } from "@/lib/anthropic";
 import { db, schema } from "@/lib/db";
 import { settleDistillSession } from "@/lib/distill/settle";
@@ -50,11 +52,19 @@ export async function POST(request: Request) {
   // re-sync run status/cost. Settlers are idempotent and skip sessions that
   // aren't theirs, so routing is by prefix, not by exact event type.
   if (event.data.type.startsWith("session.") && event.data.type !== "session.deleted") {
-    const [distill, smoke] = await Promise.all([
-      settleDistillSession(event.data.id),
-      settlePingPongSession(event.data.id),
-    ]);
-    console.log("webhook", { ...log, distill, smoke });
+    try {
+      const [distill, smoke] = await Promise.all([
+        settleDistillSession(event.data.id),
+        settlePingPongSession(event.data.id),
+      ]);
+      console.log("webhook", { ...log, distill, smoke });
+    } catch (err) {
+      // Release the dedupe row so Anthropic's retries (and the reconciler)
+      // get another chance; a 5xx tells Anthropic to retry.
+      await db.delete(schema.webhookEvents).where(eq(schema.webhookEvents.id, event.id)).catch(() => {});
+      console.error("webhook settle failed", { ...log, error: err instanceof Error ? err.message : String(err) });
+      return new Response("settle failed", { status: 500 });
+    }
   } else {
     console.log("webhook", log);
   }

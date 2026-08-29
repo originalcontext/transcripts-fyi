@@ -1,25 +1,32 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 
 import { regenerateSubjectAction } from "@/app/s/actions";
 import { Button } from "@/components/ui/button";
 
-function Submit() {
-  const { pending } = useFormStatus();
+/**
+ * Ends the subject's live run and starts a fresh one on the current
+ * skill/agent. Admin-only server side; capped at ten regenerations per
+ * subject. Submits immediately — no dialog, by decision.
+ */
+export function RequestUpdate({
+  subjectId,
+  label = "Request update",
+  variant = "link",
+}: {
+  subjectId: string;
+  label?: string;
+  variant?: "link" | "outline";
+}) {
+  const [state, action, pending] = useActionState(regenerateSubjectAction, undefined);
   return (
-    <Button type="submit" variant="link" size="sm" disabled={pending} className="h-auto p-0 text-xs">
-      {pending ? "Requesting…" : "Request update"}
-    </Button>
-  );
-}
-
-/** Re-distills the subject on the current skill/agent. Submits straight away; admin-gated server-side. */
-export function RequestUpdate({ subjectId }: { subjectId: string }) {
-  return (
-    <form action={regenerateSubjectAction} className="inline-flex">
+    <form action={action} className="inline-flex items-center gap-2">
       <input type="hidden" name="subjectId" value={subjectId} />
-      <Submit />
+      <Button type="submit" size="sm" variant={variant} disabled={pending} className={variant === "link" ? "h-auto p-0 text-xs" : undefined}>
+        {pending ? "Requesting…" : label}
+      </Button>
+      {state?.error && <span className="text-xs text-destructive">{state.error}</span>}
     </form>
   );
 }

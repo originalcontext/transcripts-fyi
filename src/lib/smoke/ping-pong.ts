@@ -23,7 +23,7 @@ export async function listAllEvents(sessionId: string): Promise<SessionEvent[]> 
 }
 
 export type SettleResult =
-  | { action: "skipped"; reason: "not-smoke" | "other-target" | "nothing-pending" }
+  | { action: "skipped"; reason: "not-smoke" | "other-target" | "nothing-pending" | "session-terminal" }
   | { action: "answered"; tools: string[] };
 
 export async function settlePingPongSession(sessionId: string): Promise<SettleResult> {
@@ -31,6 +31,7 @@ export async function settlePingPongSession(sessionId: string): Promise<SettleRe
   if (session.metadata?.smoke !== SMOKE_KIND) return { action: "skipped", reason: "not-smoke" };
   if (session.metadata?.target !== deployTarget())
     return { action: "skipped", reason: "other-target" };
+  if (session.status === "terminated" || session.archived_at) return { action: "skipped", reason: "session-terminal" };
 
   const pending = unansweredToolUses(await listAllEvents(sessionId));
   if (pending.length === 0) return { action: "skipped", reason: "nothing-pending" };

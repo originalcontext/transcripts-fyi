@@ -1,6 +1,7 @@
 import { eq, ne } from "drizzle-orm";
 
 import { anthropic, deployTarget } from "@/lib/anthropic";
+import { isNotFound } from "@/lib/cma/errors";
 import { deriveRunStatus, unansweredToolUses } from "@/lib/cma/events";
 import { db, schema } from "@/lib/db";
 import { settleDistillSession } from "@/lib/distill/settle";
@@ -24,6 +25,7 @@ type Finding =
   | { kind: "stuck"; runId: string; pending: string[] }
   | { kind: "stale"; runId: string; minutes: number; sessionStatus: string }
   | { kind: "missing"; runId: string; sessionId: string; error: string }
+  | { kind: "unreachable"; runId: string; sessionId: string; error: string }
   | { kind: "orphan"; sessionId: string; status: string; ageMinutes: number };
 
 export type ReconcileReport = { target: string; liveRuns: number; findings: Finding[]; applied: string[] };
@@ -45,7 +47,14 @@ export async function reconcile(opts: { apply?: boolean } = {}): Promise<Reconci
     try {
       session = await anthropic.beta.sessions.retrieve(run.cmaSessionId);
     } catch (err) {
-      findings.push({ kind: "missing", runId: run.id, sessionId: run.cmaSessionId, error: err instanceof Error ? err.message : String(err) });
+      const error = err instanceof Error ? err.message : String(err);
+      // Only a 404 means the session is gone. A 429/5xx/network error means
+      // CMA is unreachable right now — leave the run alone and try next pass.
+      if (!isNotFound(err)) {
+        findings.push({ kind: "unreachable", runId: run.id, sessionId: run.cmaSessionId, error });
+        continue;
+      }
+      findings.push({ kind: "missing", runId: run.id, sessionId: run.cmaSessionId, error });
       if (apply) {
         await db.update(schema.runs).set({ status: "ended", lastActivityAt: new Date() }).where(eq(schema.runs.id, run.id));
         applied.push(`ended run ${run.id} (session missing)`);
