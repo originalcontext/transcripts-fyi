@@ -74,7 +74,7 @@ export function SausageLayout({ header, panel, children }: { header: React.React
 
           <aside
             aria-hidden={!open}
-            className="w-[min(90vw,26rem)] overflow-y-auto border-l border-amber-500/30 bg-amber-50/80 p-3 text-xs shadow-xl backdrop-blur-md dark:bg-amber-950/60"
+            className="w-[min(90vw,26rem)] overflow-y-auto border-l border-amber-500/30 bg-amber-50/65 p-3 text-xs shadow-xl backdrop-blur-md dark:bg-amber-950/50"
           >
             <div className="mb-2 flex items-center justify-between">
               <span className="font-medium text-amber-800 dark:text-amber-300">How the sausage was made</span>
