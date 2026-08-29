@@ -21,9 +21,9 @@ export function AddSubject() {
 
   return (
     <form action={action} className="flex items-center gap-2">
-      <Input name="key" placeholder="ticker" className="w-28 uppercase" autoComplete="off" spellCheck={false} />
+      <Input name="key" placeholder="ticker" className="w-20 uppercase md:w-28" autoComplete="off" spellCheck={false} />
       <Button type="submit" size="sm" disabled={pending}>
-        {pending ? "adding…" : "Add to universe"}
+        {pending ? "adding…" : <><span className="md:hidden">Add</span><span className="hidden md:inline">Add to universe</span></>}
       </Button>
     </form>
   );
