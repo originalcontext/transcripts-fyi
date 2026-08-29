@@ -19,7 +19,7 @@ import { listAllEvents } from "@/lib/smoke/ping-pong";
  * `apply: false` (default) only reports.
  */
 
-export type Finding =
+type Finding =
   | { kind: "drift"; runId: string; from: string; to: string }
   | { kind: "stuck"; runId: string; pending: string[] }
   | { kind: "stale"; runId: string; minutes: number; sessionStatus: string }
