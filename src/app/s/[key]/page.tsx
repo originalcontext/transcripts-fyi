@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { ArtifactFrame } from "@/components/app/artifact-frame";
 import { AutoRefresh } from "@/components/app/auto-refresh";
 import { RequestUpdate } from "@/components/app/request-update";
 import { Sausage } from "@/components/app/sausage";
@@ -62,9 +63,9 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
         panel={admin ? run ? <Sausage runId={run.id} subjectId={subject.id} live={working} /> : <p className="text-muted-foreground">no run</p> : null}
       >
         {artifact ? (
-          <iframe title={`${subject.key} explainer`} srcDoc={injectArtifactHead(artifact.content)} sandbox="allow-scripts" className="h-full w-full flex-1 bg-[#0a0a0a]" />
+          <ArtifactFrame title={`${subject.key} explainer`} srcDoc={injectArtifactHead(artifact.content)} />
         ) : (
-          <div className="flex flex-1 items-center justify-center p-6 text-center text-muted-foreground">
+          <div className="flex flex-1 items-center justify-center p-6 text-center text-neutral-400">
             {working ? "Reading the last eight calls…" : "Nothing here yet."}
           </div>
         )}

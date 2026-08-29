@@ -69,7 +69,7 @@ export function SausageLayout({ header, panel, children }: { header: React.React
       </div>
 
       {/* The overlay lives here, below the header row, so the status line is never covered. */}
-      <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="relative flex min-h-0 flex-1 flex-col bg-[#0a0a0a]">
         {children}
 
         {panel && (
