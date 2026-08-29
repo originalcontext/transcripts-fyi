@@ -55,7 +55,7 @@ export function SausageLayout({ header, panel, children }: { header: React.React
         {panel && (
         <div
           className={cn(
-            "absolute inset-y-2 right-0 flex transition-transform duration-300 [transition-timing-function:cubic-bezier(.2,.8,.2,1)]",
+            "absolute inset-y-0 right-0 flex transition-transform duration-200 ease-out",
             // closed: slide the panel off to the right, leaving just the rail
             !open && "translate-x-[calc(100%-1.5rem)]",
           )}
@@ -65,7 +65,7 @@ export function SausageLayout({ header, panel, children }: { header: React.React
             onClick={() => writeOpen(!open)}
             aria-expanded={open}
             aria-label={open ? "Hide how the sausage was made" : "Show how the sausage was made"}
-            className="flex w-6 shrink-0 cursor-pointer flex-col items-center justify-center gap-3 rounded-l-2xl border border-r-0 border-white/40 bg-amber-400/70 text-amber-950 shadow-lg backdrop-blur-xl backdrop-saturate-150 transition-colors hover:bg-amber-300/80 dark:border-white/15 dark:bg-amber-500/60 dark:text-amber-50 dark:hover:bg-amber-400/70"
+            className="flex w-6 shrink-0 cursor-pointer flex-col items-center justify-center gap-3 border-l border-amber-600/40 bg-amber-400 text-amber-950 hover:bg-amber-300 dark:bg-amber-500 dark:hover:bg-amber-400"
           >
             {open ? <ChevronRightIcon className="size-4" /> : <ChevronLeftIcon className="size-4" />}
             <span className="font-mono text-[10px] font-medium uppercase tracking-widest [writing-mode:vertical-rl]">sausage</span>
@@ -74,7 +74,7 @@ export function SausageLayout({ header, panel, children }: { header: React.React
 
           <aside
             aria-hidden={!open}
-            className="relative w-[min(90vw,26rem)] overflow-y-auto border-y border-l border-white/50 bg-white/35 p-3 text-xs shadow-2xl shadow-black/20 backdrop-blur-2xl backdrop-saturate-150 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-24 before:bg-gradient-to-b before:from-white/40 before:to-transparent dark:border-white/10 dark:bg-neutral-900/35 dark:before:from-white/10"
+            className="w-[min(90vw,26rem)] overflow-y-auto border-l border-amber-500/30 bg-amber-50/80 p-3 text-xs shadow-xl backdrop-blur-md dark:bg-amber-950/60"
           >
             <div className="mb-2 flex items-center justify-between">
               <span className="font-medium text-amber-800 dark:text-amber-300">How the sausage was made</span>
