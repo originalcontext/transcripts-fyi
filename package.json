@@ -7,7 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "smoke:setup": "tsx --env-file=.env.local scripts/smoke/setup.ts",
     "smoke:run": "tsx --env-file=.env.local scripts/smoke/run.ts"
   },
   "dependencies": {

@@ -42,6 +42,3 @@ next-env.d.ts
 
 # but do commit the template
 !.env.example
-
-# smoke-test resource ids (per workspace)
-.smoke.json
