@@ -55,7 +55,6 @@ export const runs = pgTable(
   ],
 );
 
-export type RunStatus = "working" | "idle" | "budget_reached" | "ended";
 
 /** Every result the agent posts. Append-only; latest = max(created_at). */
 export const artifacts = pgTable(

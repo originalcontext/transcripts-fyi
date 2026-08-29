@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { ADMIN_COOKIE, adminToken, isAdminInvite, isValidInvite, SESSION_COOKIE, SESSION_MAX_AGE, sessionToken } from "@/lib/auth";
+import { ADMIN_COOKIE, adminToken, isAdminInvite, isValidInvite, safeNext, SESSION_COOKIE, SESSION_MAX_AGE, sessionToken } from "@/lib/auth";
 
 export async function loginAction(_prev: { error?: string } | undefined, formData: FormData) {
   const code = String(formData.get("code") ?? "");
@@ -20,8 +20,7 @@ export async function loginAction(_prev: { error?: string } | undefined, formDat
   };
   jar.set(SESSION_COOKIE, await sessionToken(), opts);
   if (isAdminInvite(code)) jar.set(ADMIN_COOKIE, await adminToken(), opts);
-  // Same-origin paths only: one leading slash, no "//" and no backslash (URL parsers treat "/\x" as "//x").
-  redirect(/^\/(?![\/\\])[^\\]*$/.test(next) ? next : "/");
+  redirect(safeNext(next));
 }
 
 export async function logoutAction() {

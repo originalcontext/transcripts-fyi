@@ -1,6 +1,7 @@
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 
 import { anthropic } from "@/lib/anthropic";
+import { latestStopReason } from "@/lib/cma/events";
 import { db, schema } from "@/lib/db";
 
 export async function listUniverse() {
@@ -76,8 +77,7 @@ export async function sessionTrace(sessionId: string) {
       return out;
     })(),
   ]);
-  const idle = events.filter((e) => e.type === "session.status_idle").at(-1);
-  const stop = idle?.type === "session.status_idle" ? idle.stop_reason.type : null;
+  const stop = latestStopReason(events);
   const t0 = Date.parse(session.created_at);
   const modelRequests = events.filter((e) => e.type === "span.model_request_end");
   const tokens = modelRequests.reduce(

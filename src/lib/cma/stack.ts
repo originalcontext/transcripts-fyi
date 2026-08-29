@@ -47,6 +47,9 @@ export type Stack = {
 
 const sha = (s: string) => crypto.createHash("sha256").update(s).digest("hex").slice(0, 16);
 
+/** The hash that keys stack lookups and versioning; exported for tests. */
+export const configHashFor = (spec: StackSpec) => hashes(spec).config_hash;
+
 function hashes(spec: StackSpec) {
   const skill_hash = sha(spec.skill.markdown);
   // Key names are part of the hash — keep them stable or every agent re-versions.

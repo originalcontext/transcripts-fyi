@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { runSmokeAction } from "@/app/actions";
+import { runSmokeAction } from "@/app/smoke/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { SmokeInspection } from "@/lib/smoke/session";

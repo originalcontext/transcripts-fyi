@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
+import { searchTickers as search,type TickerEntry as Entry } from "@/lib/tickers";
 
-type Entry = readonly [ticker: string, name: string];
 let cache: Entry[] | null = null;
 /** Static top-3000 list, loaded on first focus so it never rides in the initial bundle. */
 async function loadTickers(): Promise<Entry[]> {
@@ -19,19 +19,6 @@ async function loadTickers(): Promise<Entry[]> {
   return cache;
 }
 
-function search(list: Entry[], raw: string): Entry[] {
-  const q = raw.trim().toUpperCase();
-  if (!q) return [];
-  const ql = raw.trim().toLowerCase();
-  const exact: Entry[] = [], prefix: Entry[] = [], name: Entry[] = [];
-  for (const e of list) {
-    if (e[0] === q) exact.push(e);
-    else if (e[0].startsWith(q)) prefix.push(e);
-    else if (e[1].toLowerCase().includes(ql)) name.push(e);
-    if (exact.length + prefix.length + name.length > 40) break;
-  }
-  return [...exact, ...prefix, ...name].slice(0, 8);
-}
 
 /**
  * "Add to universe": a wordwheel over the static ticker list — ticker or

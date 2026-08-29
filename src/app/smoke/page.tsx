@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
-import { createStackAction } from "@/app/actions";
 import { logoutAction } from "@/app/login/actions";
+import { createStackAction } from "@/app/smoke/actions";
 import { SmokeRunner } from "@/app/smoke/smoke-runner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

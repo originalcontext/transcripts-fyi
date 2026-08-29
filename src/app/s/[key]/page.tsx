@@ -7,6 +7,7 @@ import { RequestUpdate } from "@/components/app/request-update";
 import { Sausage } from "@/components/app/sausage";
 import { SausageLayout } from "@/components/app/sausage-layout";
 import { Shell } from "@/components/app/shell";
+import { WorkingHero } from "@/components/app/working-hero";
 import { injectArtifactHead } from "@/lib/artifact/imports";
 import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
 import { activeRunFor, getSubject, latestArtifactFor, listUniverse } from "@/lib/distill/queries";
@@ -65,22 +66,11 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
         {artifact ? (
           <ArtifactFrame title={`${subject.key} explainer`} srcDoc={injectArtifactHead(artifact.content)} />
         ) : (
-          <div className="flex flex-1 items-center justify-center p-6">
-            {working ? (
-              <div className="max-w-md space-y-3 rounded-lg border border-neutral-800 bg-neutral-950 p-6 text-neutral-300">
-                <div className="text-base font-medium text-neutral-100">Reading {subject.key}&apos;s last twenty earnings calls</div>
-                <p className="text-sm leading-relaxed">
-                  Each call is analyzed on its own first — results, guidance, what management said and how they said it. Then we
-                  pull the five years together into one explainer built around how the story actually changed.
-                </p>
-                <p className="text-sm leading-relaxed text-neutral-400">
-                  This takes about half an hour. Come back then — this page updates itself when it&apos;s ready.
-                </p>
-              </div>
-            ) : (
-              <p className="text-neutral-400">Nothing here yet.</p>
-            )}
-          </div>
+          working ? (
+            <WorkingHero subject={subject.key} />
+          ) : (
+            <div className="flex flex-1 items-center justify-center p-6 text-neutral-400">Nothing here yet.</div>
+          )
         )}
       </SausageLayout>
     </Shell>

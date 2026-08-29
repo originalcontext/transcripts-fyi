@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
 
 import { anthropic, deployTarget } from "@/lib/anthropic";
-import { deriveRunStatus, type RunStatus, unansweredToolUses } from "@/lib/cma/events";
+import { deriveRunStatus, type RunStatus } from "@/lib/cma/events";
+import { answerPendingTools, listAllEvents } from "@/lib/cma/session";
 import { db, schema } from "@/lib/db";
 import { APP } from "@/lib/distill/stack";
 import { runDistillTool } from "@/lib/distill/tools";
-import { listAllEvents } from "@/lib/smoke/ping-pong";
 
 export type DistillSettle =
   | { action: "skipped"; reason: "not-ours" | "other-target" | "unknown-run" | "run-ended" | "session-terminal" }
@@ -34,30 +34,14 @@ export async function settleDistillSession(sessionId: string): Promise<DistillSe
   }
 
   const events = await listAllEvents(sessionId);
-  const pending = unansweredToolUses(events);
+  const ctx = { runId: run.id, subjectId: run.subjectId };
+  const tools = await answerPendingTools(sessionId, events, (call) => runDistillTool({ ...ctx, toolUseId: call.id }, call.name, call.input));
 
-  const results = await Promise.all(
-    pending.map(async (call) => {
-      const ctx = { runId: run.id, subjectId: run.subjectId, toolUseId: call.id };
-      const { result, isError } = await runDistillTool(ctx, call.name, call.input).catch((err: unknown) => ({
-        result: { error: err instanceof Error ? err.message : String(err) },
-        isError: true,
-      }));
-      return {
-        type: "user.custom_tool_result" as const,
-        custom_tool_use_id: call.id,
-        is_error: isError,
-        content: [{ type: "text" as const, text: JSON.stringify(result) }],
-      };
-    }),
-  );
-  if (results.length > 0) await anthropic.beta.sessions.events.send(sessionId, { events: results });
-
-  const status = deriveRunStatus(session.status, events, results.length > 0);
+  const status = deriveRunStatus(session.status, events, tools.length > 0);
 
   await db
     .update(schema.runs)
     .set({ status, listCostCents: Number(session.usage.list_cost?.amount ?? 0), lastActivityAt: new Date() })
     .where(eq(schema.runs.id, run.id));
-  return { action: "synced", runId: run.id, status, tools: pending.map((c) => c.name) };
+  return { action: "synced", runId: run.id, status, tools };
 }

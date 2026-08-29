@@ -3,10 +3,10 @@ import { asc, eq, ne } from "drizzle-orm";
 import { anthropic, deployTarget } from "@/lib/anthropic";
 import { isNotFound } from "@/lib/cma/errors";
 import { deriveRunStatus, unansweredToolUses } from "@/lib/cma/events";
+import { listAllEvents, quietMinutes } from "@/lib/cma/session";
 import { db, schema } from "@/lib/db";
 import { settleDistillSession } from "@/lib/distill/settle";
 import { APP } from "@/lib/distill/stack";
-import { listAllEvents } from "@/lib/smoke/ping-pong";
 
 /**
  * Reconciler — belt and suspenders under the webhook.
@@ -82,13 +82,18 @@ export async function reconcile(opts: { apply?: boolean } = {}): Promise<Reconci
 }
 
 type Ctx = { apply: boolean; findings: Finding[]; applied: string[] };
-type Run = typeof schema.runs.$inferSelect;
 
-/** Minutes since the last session event was processed (the session's own clock, not ours). */
-function quietMinutes(events: Awaited<ReturnType<typeof listAllEvents>>, createdAt: string) {
-  const last = events.reduce((m, e) => Math.max(m, e.processed_at ? Date.parse(e.processed_at) : 0), Date.parse(createdAt));
-  return (Date.now() - last) / 60_000;
+/**
+ * The hung-run state machine, pure: what to do given the session status, how
+ * long it has been quiet, and how many nudges it already had.
+ *   quiet ≤ 20 min, or not running → nothing
+ *   0 nudges → interrupt; 1 → "continue from notes"; 2 → give up (end the run)
+ */
+export function planNudge(sessionStatus: string, quietMin: number, nudges: number): "interrupt" | "continue" | "give-up" | null {
+  if (sessionStatus !== "running" || quietMin <= QUIET_RUNNING_MIN) return null;
+  return nudges === 0 ? "interrupt" : nudges < MAX_NUDGES ? "continue" : "give-up";
 }
+type Run = typeof schema.runs.$inferSelect;
 
 async function reconcileRun(run: Run, { apply, findings, applied }: Ctx) {
   let session;
@@ -130,9 +135,9 @@ async function reconcileRun(run: Run, { apply, findings, applied }: Ctx) {
   }
 
   // Hung: "running" but the session has emitted nothing for a long time.
-  if (session.status === "running" && quiet > QUIET_RUNNING_MIN) {
-    const nudges = Number(session.metadata?.nudges ?? 0);
-    const action = nudges === 0 ? "interrupt" : nudges < MAX_NUDGES ? "continue" : "give-up";
+  const nudges = Number(session.metadata?.nudges ?? 0);
+  const action = planNudge(session.status, quiet, nudges);
+  if (action) {
     findings.push({ kind: "hung", runId: run.id, quietMinutes: Math.round(quiet), nudges, action });
     if (!apply) return;
     if (action === "give-up") {

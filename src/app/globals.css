@@ -139,3 +139,15 @@
 html[data-sausage="0"] .sausage-drawer {
   translate: calc(100% - 1.5rem) 0;
 }
+
+/* Working hero: a soft light sweep across the quarter bars. */
+@keyframes working-sweep {
+  from { transform: translateX(0); }
+  to { transform: translateX(400px); }
+}
+.working-sweep {
+  animation: working-sweep 2.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .working-sweep { animation: none; }
+}

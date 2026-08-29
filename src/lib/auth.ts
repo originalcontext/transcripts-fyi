@@ -63,3 +63,8 @@ export async function isAdmin(cookieValue: string | undefined) {
   if (!process.env.ADMIN_INVITE_CODE) return true;
   return !!cookieValue && timingSafeEqual(cookieValue, await adminToken());
 }
+
+/** Same-origin post-login target only: one leading slash, no "//" and no backslash (URL parsers read "/\\x" as "//x"). */
+export function safeNext(next: string): string {
+  return /^\/(?![\/\\])[^\\]*$/.test(next) ? next : "/";
+}

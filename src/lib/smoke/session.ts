@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
 
 import { anthropic, type DeployTarget } from "@/lib/anthropic";
-import { listAllEvents, SMOKE_KIND } from "@/lib/smoke/ping-pong";
+import { latestStopReason } from "@/lib/cma/events";
+import { listAllEvents } from "@/lib/cma/session";
+import { SMOKE_KIND } from "@/lib/smoke/ping-pong";
 import { FETCH_TRANSCRIPT_TOOL, PONG_TOOL, RENDER_SUMMARY_TOOL } from "@/lib/smoke/tools";
 
 const SMOKE_SYMBOL = "NVDA";
@@ -57,9 +59,7 @@ export async function inspectSmokeSession(sessionId: string): Promise<SmokeInspe
   const nonce = session.metadata?.nonce ?? "?";
   const events = await listAllEvents(sessionId);
 
-  const idle = events.filter((e) => e.type === "session.status_idle").at(-1);
-  const stop =
-    session.status === "idle" && idle?.type === "session.status_idle" ? idle.stop_reason.type : null;
+  const stop = session.status === "idle" ? latestStopReason(events) : null;
   const done =
     session.status === "terminated" || (stop !== null && stop !== "requires_action");
 

@@ -9,6 +9,7 @@ import { db, schema } from "@/lib/db";
 import { activeRun, getSubject } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
 import { APP, distillSpec, ensureDistillStack } from "@/lib/distill/stack";
+import { UserError } from "@/lib/errors";
 
 const RUN_BUDGET_CENTS = 2500; // $25 per run (20 quarters; NVDA measured ~$9.50)
 const MAX_SUBJECTS = 100; // shared universe, trusted invitees — a ceiling, not a quota
@@ -53,7 +54,7 @@ async function startRun(subject: Subject, target: DeployTarget) {
     });
   } catch (err) {
     await anthropic.beta.sessions.archive(session.id).catch(() => {}); // idle session, nothing spent
-    if (/runs_one_live_per_subject_skill|unique/i.test(err instanceof Error ? err.message : "")) throw new Error(`${key} is already being distilled.`);
+    if (/runs_one_live_per_subject_skill|unique/i.test(err instanceof Error ? err.message : "")) throw new UserError(`${key} is already being distilled.`);
     throw err;
   }
   await anthropic.beta.sessions.events.send(session.id, {
@@ -80,7 +81,7 @@ export async function regenerateSubject(subjectId: string, target: DeployTarget)
   if (!subject) throw new Error("no such subject");
   const [{ n: priorRuns }] = await db.select({ n: count() }).from(schema.runs).where(eq(schema.runs.subjectId, subjectId));
   if (priorRuns - 1 >= MAX_REGENERATIONS)
-    throw new Error(`${subject.key} has been regenerated ${MAX_REGENERATIONS} times — that's the limit for now.`);
+    throw new UserError(`${subject.key} has been regenerated ${MAX_REGENERATIONS} times — that's the limit for now.`);
   const live = await db
     .select()
     .from(schema.runs)
@@ -90,7 +91,7 @@ export async function regenerateSubject(subjectId: string, target: DeployTarget)
     // If the old session cannot be archived, stop: marking it ended would leave it spending unseen.
     await anthropic.beta.sessions.archive(r.cmaSessionId).catch((err: unknown) => {
       if (isNotFound(err) || /archived|terminated/i.test(err instanceof Error ? err.message : "")) return;
-      throw new Error(`Could not archive the current run (${err instanceof Error ? err.message : String(err)}). Try again in a minute.`);
+      throw new UserError(`Could not archive the current run (${err instanceof Error ? err.message : String(err)}). Try again in a minute.`);
     });
     await db.update(schema.runs).set({ status: "ended", lastActivityAt: new Date() }).where(eq(schema.runs.id, r.id));
   }
@@ -102,7 +103,7 @@ export async function addSubject(key: string, target: DeployTarget) {
   let subject = await getSubject("ticker", key);
   if (!subject) {
     const [{ n }] = await db.select({ n: count() }).from(schema.subjects);
-    if (n >= MAX_SUBJECTS) throw new Error(`The universe is full (${MAX_SUBJECTS} companies).`);
+    if (n >= MAX_SUBJECTS) throw new UserError(`The universe is full (${MAX_SUBJECTS} companies).`);
     const [inserted] = await db
       .insert(schema.subjects)
       .values({ id: crypto.randomUUID(), kind: "ticker", key, displayName: key })
