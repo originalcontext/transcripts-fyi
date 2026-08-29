@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
+
 import { LoginForm } from "@/app/login/login-form";
+
+export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function Login({

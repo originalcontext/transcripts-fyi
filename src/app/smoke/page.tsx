@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { logoutAction } from "@/app/login/actions";
@@ -14,6 +15,7 @@ import { findSmokeStack } from "@/lib/smoke/stack";
 import { checkStorage } from "@/lib/smoke/storage";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Smoke", robots: { index: false } };
 
 export default async function Home() {
   if (!(await viewerIsAdmin())) notFound();

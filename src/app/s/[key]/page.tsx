@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ArtifactFrame } from "@/components/app/artifact-frame";
@@ -11,9 +12,18 @@ import { injectArtifactHead } from "@/lib/artifact/imports";
 import { viewerIsAdmin } from "@/lib/auth-server";
 import { activeRunFor, getSubject, latestArtifactFor, listUniverse } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
+import { companyName } from "@/lib/tickers";
 import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ key: string }> }): Promise<Metadata> {
+  const key = (await params).key.toUpperCase();
+  const name = companyName(key);
+  const title = name ? `${key} · ${name}` : key;
+  const description = `${name ?? key}, through five years of earnings calls — one interactive explainer of how the story changed.`;
+  return { title, description, openGraph: { title, description }, twitter: { title, description } };
+}
 
 /** The mainline reads, timed. Postgres only — everything CMA-shaped is in <Sausage/>. */
 async function loadHotPath(key: string) {

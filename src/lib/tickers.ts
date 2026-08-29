@@ -1,4 +1,13 @@
+import tickers from "@/data/tickers.json";
+
 export type TickerEntry = readonly [ticker: string, name: string];
+
+let byTicker: Map<string, string> | null = null;
+/** Company name for a ticker from the static list, or null. Server-side use (loads the JSON). */
+export function companyName(ticker: string): string | null {
+  byTicker ??= new Map(asTickerEntries(tickers.tickers));
+  return byTicker.get(ticker.toUpperCase()) ?? null;
+}
 
 /** Narrow the JSON module's `string[][]` to entries; drops anything malformed rather than trusting the file. */
 export function asTickerEntries(rows: unknown): TickerEntry[] {
