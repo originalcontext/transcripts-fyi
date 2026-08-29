@@ -1,4 +1,5 @@
 import { createStackAction } from "@/app/actions";
+import { logoutAction } from "@/app/login/actions";
 import { SmokeRunner } from "@/app/smoke-runner";
 import { deployTarget } from "@/lib/anthropic";
 import { listSmokeSessions } from "@/lib/smoke/session";
@@ -20,7 +21,10 @@ export default async function Home() {
       <header>
         <h1 className="text-xl font-semibold">transcripts.fyi</h1>
         <p className="text-sm text-neutral-500">
-          Managed Agents smoke · target <code className="font-mono">{target}</code>
+          Managed Agents smoke · target <code className="font-mono">{target}</code> ·{" "}
+          <form action={logoutAction} className="inline">
+            <button className="underline">log out</button>
+          </form>
         </p>
       </header>
 
