@@ -32,8 +32,9 @@ const subscribe = (l: () => void) => {
 /**
  * Main area + the sausage panel.
  *
- * The panel is a glass sheet that overlays the RIGHT side of the middle pane
- * only — never the nav or header, and nothing behind it is dimmed. It is open
+ * The panel is a glass sheet that overlays the RIGHT side of the middle pane's
+ * content area only — never the nav, the header, or the pane's own status row,
+ * and nothing behind it is dimmed. It is open
  * by default. A full-height amber rail on the pane's right edge is the toggle;
  * when closed, only the rail remains. Same mechanism at every width; the panel
  * just gets narrower on small screens. `panel` is null for non-admins → no rail.
@@ -42,13 +43,16 @@ export function SausageLayout({ header, panel, children }: { header: React.React
   const open = useSyncExternalStore(subscribe, readOpen, () => true);
 
   return (
-    <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+    <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
       <div className="flex items-center gap-2 border-b px-3 py-1.5 text-sm md:px-4">
         <div className="min-w-0 flex-1">{header}</div>
       </div>
-      {children}
 
-      {panel && (
+      {/* The overlay lives here, below the header row, so the status line is never covered. */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        {children}
+
+        {panel && (
         <div
           className={cn(
             "absolute inset-y-0 right-0 flex transition-transform duration-200 ease-out",
@@ -79,7 +83,8 @@ export function SausageLayout({ header, panel, children }: { header: React.React
             {panel}
           </aside>
         </div>
-      )}
+        )}
+      </div>
     </main>
   );
 }
