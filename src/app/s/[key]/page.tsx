@@ -6,6 +6,7 @@ import { RequestUpdate } from "@/components/app/request-update";
 import { Sausage } from "@/components/app/sausage";
 import { SausageLayout } from "@/components/app/sausage-layout";
 import { Shell } from "@/components/app/shell";
+import { injectArtifactHead } from "@/lib/artifact/imports";
 import { ADMIN_COOKIE, isAdmin } from "@/lib/auth";
 import { activeRun, getSubject, latestArtifact } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
@@ -61,7 +62,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
         panel={admin ? run ? <Sausage runId={run.id} subjectId={subject.id} live={working} /> : <p className="text-muted-foreground">no run</p> : null}
       >
         {artifact ? (
-          <iframe title={`${subject.key} explainer`} srcDoc={artifact.content} sandbox="" className="h-full w-full flex-1 bg-[#0a0a0a]" />
+          <iframe title={`${subject.key} explainer`} srcDoc={injectArtifactHead(artifact.content)} sandbox="allow-scripts" className="h-full w-full flex-1 bg-[#0a0a0a]" />
         ) : (
           <div className="flex flex-1 items-center justify-center p-6 text-center text-muted-foreground">
             {working ? "Reading the last eight calls…" : "Nothing here yet."}

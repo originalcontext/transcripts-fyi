@@ -8,7 +8,7 @@ import { activeRun, getSubject } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
 import { APP, ensureDistillStack } from "@/lib/distill/stack";
 
-const RUN_BUDGET_CENTS = 1000; // $10 per run
+const RUN_BUDGET_CENTS = 1500; // $15 per run (20 quarters)
 
 type Subject = typeof schema.subjects.$inferSelect;
 

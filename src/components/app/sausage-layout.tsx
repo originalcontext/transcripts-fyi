@@ -31,6 +31,7 @@ const readOpen = () => {
 const writeOpen = (v: boolean) => {
   try {
     localStorage.setItem(STORAGE_KEY, v ? "1" : "0");
+    document.documentElement.dataset.sausage = v ? "1" : "0";
   } catch {}
   listeners.forEach((l) => l());
 };
@@ -74,7 +75,7 @@ export function SausageLayout({ header, panel, children }: { header: React.React
         {panel && (
         <div
           className={cn(
-            "absolute inset-y-0 right-0 flex transition-transform duration-200 ease-out",
+            "sausage-drawer absolute inset-y-0 right-0 flex transition-transform duration-200 ease-out",
             // closed: slide the panel off to the right, leaving just the rail
             !open && "translate-x-[calc(100%-1.5rem)]",
           )}

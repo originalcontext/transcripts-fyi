@@ -131,3 +131,10 @@
     @apply font-sans;
   }
 }
+/* Sausage drawer: the SSR markup is "open"; before hydration a pre-paint
+   script stamps html[data-sausage] from localStorage, and this rule holds the
+   drawer closed (rail only) so a closed preference never flashes open. After
+   hydration React renders the same state, so nothing moves. */
+html[data-sausage="0"] .sausage-drawer {
+  transform: translateX(calc(100% - 1.5rem));
+}

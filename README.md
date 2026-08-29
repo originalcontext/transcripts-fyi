@@ -34,7 +34,7 @@ Prod: https://transcripts.fyi · Dev: `npm run dev` + ngrok → `/webhook`
 - **Versioning, later** — roll-forward policy for long-lived runs (lazy on next view / new transcript, or reconciler cron), `ant` YAML in CI if wanted, prompt A/B via `agent_with_overrides`. Environment changes still manual.
 - **Persistence at the CMA layer for ongoing synthesis** — long-lived session vs. memory store vs. re-run from artifacts when a new transcript arrives.
 - **Sources of truth vs. cache layers** — transcripts (FMP) are refetched per run; Redis is idle. Add caching only when something is measurably slow.
-- **GenUI hardening** — the explainer is agent-authored HTML in a `sandbox=""` iframe; revisit CSP, size limits, and what the agent may emit.
+- **GenUI hardening** — the explainer is agent-authored HTML in a `sandbox="allow-scripts"` iframe (unique origin, no same-origin access) with a pinned library set injected from jsDelivr (`src/lib/artifact/imports.ts`). Deliberately punted: CSP on the iframe, SRI hashes on the CDN tags, size limits, what the agent may emit.
 - Simplification pass: fold `smoke/stack.ts` and `distill/stack.ts` once there are two real skills.
 
 ## Future ideas
@@ -71,6 +71,7 @@ Quoted where Eddie said it; *implied* where it followed from the conversation.
 | 20 | Plain HTML in the tool call, not base64 | Recommended and unopposed: JSON escaping handles it, base64 costs 33% more output tokens and hides the content in the trace |
 | 21 | Skills and system prompts stay simple for now | "keep the skills and system instructions simple but effective for now, that's a whole sprint later" |
 | 23 | Versioning = hash-drift + "Regenerate all"; style stays in the skill | "the versioning is a bit of a rabbit hole… a 'regenerate all' button… simply creates and reruns fresh sessions… picking up any skill differences including style (dont want to split the style and markup, I see issues with that + constrains the agent)" |
+| 25 | Explainer = 20 quarters, map/reduce via sandbox notes, interactive with a pinned library set | "bump it from 8 quarters to 20… not wall of text but intuitive bespoke experiences… click-in for deeper context for professional analysts… fixed key set of jsdelivr'ed imports in the shell and a 'use these and only these' in the skill… punt on sandboxing for now". Notes files make the run resilient to context compaction at ~230k transcript tokens; budget $15/run |
 | 24 | Reconciler every 5 min, GC daily; crons fail closed without `CRON_SECRET` | "Perhaps vercel crons for reconcilers and GC as belt and suspenders?" — 5 min ≈ one run's length and just past Anthropic's last webhook retry (3 × ≤120s), so a dropped delivery costs at most ~5 min; each pass is ~2 CMA reads per live run. GC at 04:17 UTC. Requires a Vercel plan with sub-daily cron |
 | 22 | Mainline reads Postgres only; the sausage may cheat, behind an admin flag, off the render path | "the main-line product is predictable and risk free eventually even if the show and tell parts cheat" — nothing user-facing derives from a live CMA call; the webhook materializes what the mainline needs |
 

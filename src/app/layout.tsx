@@ -19,6 +19,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     // suppressHydrationWarning: next-themes sets the class on <html> before hydration.
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <head>
+        {/* Sausage drawer: decide open/closed from localStorage before first paint (see sausage-layout.tsx). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var v=localStorage.getItem("tfyi:sausage-open");document.documentElement.dataset.sausage=v!==null?(v==="0"?"0":"1"):(matchMedia("(min-width:768px)").matches?"1":"0")}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
           {children}
