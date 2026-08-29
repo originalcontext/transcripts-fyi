@@ -47,7 +47,7 @@ export const DISTILL_TOOLS: CustomTool[] = [
     type: "custom",
     name: POST_ARTIFACT_TOOL,
     description:
-      "Publish the finished explainer to the application. `html` is a complete self-contained HTML document (inline CSS, no scripts, no external resources). `meta` carries small structured facts about it, at minimum `symbol` and the list of `quarters` covered. Call exactly once per distillation; the return value only acknowledges receipt.",
+      "Publish the finished explainer to the application. `html` is a complete self-contained HTML document: inline CSS, one inline script for interactivity, and no external resources of its own (the host page provides the allowed libraries). `meta` carries small structured facts about it, at minimum `symbol` and the list of `quarters` covered. Call exactly once per distillation; the return value only acknowledges receipt.",
     input_schema: {
       type: "object",
       properties: {
