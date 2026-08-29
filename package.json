@@ -19,7 +19,8 @@
     "knip": "knip",
     "check": "npm run typecheck && npm run lint && npm run test && npm run knip",
     "reconcile": "tsx --env-file=${ENV_FILE:-.env.local} scripts/reconcile.ts",
-    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true"
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
+    "gc": "tsx --env-file=${ENV_FILE:-.env.local} scripts/gc.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

@@ -29,7 +29,7 @@ Prod: https://transcripts.fyi · Dev: `npm run dev` + ngrok → `/webhook`
 
 ## Below the line (next)
 
-- **Webhook consistency & resiliency sprint (first).** The webhook is the single seam between CMA and product state — artifacts, run status, cost all cross there. Make it boringly correct: orphaned sessions when the `runs` insert fails after `sessions.create`; stuck `requires_action` if a delivery is dropped after three retries; FMP retries/timeouts inside the handler; handler runtime vs. Vercel function limits. `npm run reconcile` is the **dry-run reconciler** — it prints status drift, stuck `requires_action`, orphan sessions, and stale "working" runs without changing anything; it is the spec for the cron. **Belt and suspenders via Vercel crons:** a *reconciler* (every few minutes: for runs not `ended`, `sessions.retrieve` and re-settle any that drifted or are stuck) and a *GC* (archive CMA sessions for runs `ended` > N days, prune `webhook_events`). Webhooks fast-path; crons guarantee eventual consistency.
+- **Webhook consistency & resiliency sprint (first).** The webhook is the single seam between CMA and product state — artifacts, run status, cost all cross there. Make it boringly correct: orphaned sessions when the `runs` insert fails after `sessions.create`; stuck `requires_action` if a delivery is dropped after three retries; FMP retries/timeouts inside the handler; handler runtime vs. Vercel function limits. **Crons are in** (`vercel.json`, `src/lib/ops/*`, `/api/cron/*` behind `CRON_SECRET`): the *reconciler* every 5 minutes re-derives every live run from the session resource and re-settles drift / stuck `requires_action` / stale working, ends runs whose session is gone, and archives orphan sessions older than an hour; *GC* daily archives sessions of runs ended > 7 days and prunes `webhook_events` > 30 days. Every repair is the same idempotent settle the webhook runs. `npm run reconcile` / `npm run gc` are dry-run CLIs (`--apply` to act). Remaining for the sprint: FMP retries/timeouts in the handler, handler runtime vs. function limits, and measuring how often the reconciler actually finds anything.
 - **Skills & system prompts sprint** — the distiller skill and system prompt are deliberately plain right now; make them effective (longitudinal structure, citations, tone) as a dedicated pass.
 - **Versioning, later** — roll-forward policy for long-lived runs (lazy on next view / new transcript, or reconciler cron), `ant` YAML in CI if wanted, prompt A/B via `agent_with_overrides`. Environment changes still manual.
 - **Persistence at the CMA layer for ongoing synthesis** — long-lived session vs. memory store vs. re-run from artifacts when a new transcript arrives.
@@ -71,6 +71,7 @@ Quoted where Eddie said it; *implied* where it followed from the conversation.
 | 20 | Plain HTML in the tool call, not base64 | Recommended and unopposed: JSON escaping handles it, base64 costs 33% more output tokens and hides the content in the trace |
 | 21 | Skills and system prompts stay simple for now | "keep the skills and system instructions simple but effective for now, that's a whole sprint later" |
 | 23 | Versioning = hash-drift + "Regenerate all"; style stays in the skill | "the versioning is a bit of a rabbit hole… a 'regenerate all' button… simply creates and reruns fresh sessions… picking up any skill differences including style (dont want to split the style and markup, I see issues with that + constrains the agent)" |
+| 24 | Reconciler every 5 min, GC daily; crons fail closed without `CRON_SECRET` | "Perhaps vercel crons for reconcilers and GC as belt and suspenders?" — 5 min ≈ one run's length and just past Anthropic's last webhook retry (3 × ≤120s), so a dropped delivery costs at most ~5 min; each pass is ~2 CMA reads per live run. GC at 04:17 UTC. Requires a Vercel plan with sub-daily cron |
 | 22 | Mainline reads Postgres only; the sausage may cheat, behind an admin flag, off the render path | "the main-line product is predictable and risk free eventually even if the show and tell parts cheat" — nothing user-facing derives from a live CMA call; the webhook materializes what the mainline needs |
 
 ## Running it
@@ -81,6 +82,7 @@ npm run distill -- NVDA           # CLI twin of "Add to universe"
 npm run smoke:run -- --target dev # /smoke page, CLI twin
 npm run smoke:storage
 npm run check                    # typecheck + lint + test + knip (also the pre-push hook)
-npm run reconcile                # dry-run reconciler: prints drift, changes nothing
+npm run reconcile                # dry-run reconciler (--apply to repair); cron does this every 5 min
+npm run gc                       # dry-run GC (--apply); cron does this daily
 npm run db:generate && npm run db:migrate   # dev only
 ```
