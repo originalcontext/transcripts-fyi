@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import Link from "next/link";
 import { useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/utils";
@@ -78,7 +79,10 @@ export function SausageLayout({ header, panel, children }: { header: React.React
           >
             <div className="mb-2 flex items-center justify-between">
               <span className="font-medium text-amber-800 dark:text-amber-300">How the sausage was made</span>
-              <span className="font-mono text-[10px] text-amber-700/80 dark:text-amber-400/80">admin · live from CMA</span>
+              <span className="font-mono text-[10px] text-amber-700/80 dark:text-amber-400/80">
+                admin · live from CMA ·{" "}
+                <Link href="/smoke" className="underline">smoke</Link>
+              </span>
             </div>
             {panel}
           </aside>

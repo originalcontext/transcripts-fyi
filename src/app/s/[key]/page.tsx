@@ -38,16 +38,13 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
   const working = run?.status === "working";
 
   return (
-    <Shell current={subject.key}>
+    <Shell current={subject.key} hotPathMs={hotPathMs}>
       <AutoRefresh active={working} />
 
       <SausageLayout
         header={
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
             <span className="font-medium">{subject.key}</span>
-            <span className="rounded bg-emerald-500/10 px-2 py-0.5 font-mono text-[11px] text-emerald-700 dark:text-emerald-400" title="This render: Postgres only. Never waits on CMA.">
-              hot path · postgres · {hotPathMs}ms · $0/view
-            </span>
             <span className="text-xs text-muted-foreground">
               {artifact &&
                 `latest ${artifact.createdAt.toISOString().replace("T", " ").slice(0, 16)} · ${String((artifact.meta as { quarters?: string[] }).quarters?.length ?? "?")} quarters · `}
