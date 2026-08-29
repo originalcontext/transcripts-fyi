@@ -1,6 +1,7 @@
 import { toFile } from "@anthropic-ai/sdk";
 import { anthropic, type DeployTarget } from "@/lib/anthropic";
-import { PONG_TOOL, SMOKE_KIND } from "@/lib/smoke/ping-pong";
+import { SMOKE_KIND } from "@/lib/smoke/ping-pong";
+import { SMOKE_TOOLS } from "@/lib/smoke/tools";
 import { SKILL_MD, SKILL_NAME } from "@/lib/smoke/skill";
 
 /**
@@ -16,10 +17,25 @@ export type SmokeStack = {
   target: DeployTarget;
   environment: { id: string; name: string } | null;
   skill: { id: string; version: string } | null;
-  agent: { id: string; version: number; name: string; created_at: string } | null;
+  agent: { id: string; version: number; name: string; created_at: string; toolsCurrent: boolean } | null;
 };
 
 const envName = (t: DeployTarget) => `transcripts-fyi-smoke-${t}`;
+
+const AGENT_TOOLS = [
+  // Skills need `read`; nothing else built-in is enabled.
+  {
+    type: "agent_toolset_20260401" as const,
+    default_config: { enabled: false },
+    configs: [{ name: "read" as const, enabled: true }],
+  },
+  ...SMOKE_TOOLS,
+];
+
+/** Custom tool names an agent currently exposes — the drift signal. */
+const customToolNames = (tools: { type: string; name?: string }[]) =>
+  tools.flatMap((t) => (t.type === "custom" && t.name ? [t.name] : [])).sort().join(",");
+const DESIRED_TOOL_NAMES = customToolNames(SMOKE_TOOLS);
 
 async function findEnvironment(target: DeployTarget) {
   for await (const e of anthropic.beta.environments.list()) {
@@ -60,6 +76,7 @@ export async function findStack(target: DeployTarget): Promise<SmokeStack> {
       version: agent.version,
       name: agent.name,
       created_at: agent.created_at,
+      toolsCurrent: customToolNames(agent.tools) === DESIRED_TOOL_NAMES,
     },
   };
 }
@@ -83,9 +100,12 @@ export async function ensureStack(target: DeployTarget): Promise<SmokeStack> {
       files: [await toFile(Buffer.from(SKILL_MD), `${SKILL_NAME}/SKILL.md`)],
     }));
 
-  const agent =
-    (await findAgent(target)) ??
-    (await anthropic.beta.agents.create({
+  let agent = await findAgent(target);
+  if (agent && customToolNames(agent.tools) !== DESIRED_TOOL_NAMES) {
+    // Tool set changed in code → publish a new agent version (optimistic lock).
+    agent = await anthropic.beta.agents.update(agent.id, { tools: AGENT_TOOLS, version: agent.version });
+  }
+  agent ??= await anthropic.beta.agents.create({
       name: `transcripts.fyi smoke: ping-pong (${target})`,
       description: "Answers ping with pong through a custom tool. Smoke test only.",
       model: { id: "claude-opus-5", effort: "low" },
@@ -94,34 +114,14 @@ export async function ensureStack(target: DeployTarget): Promise<SmokeStack> {
       system:
         "You are a smoke-test agent. Your only job is to follow the ping-pong skill precisely. Read it before replying.",
       skills: [{ type: "custom", skill_id: skill.id, version: "latest" }],
-      tools: [
-        // Skills need `read`; nothing else is enabled.
-        {
-          type: "agent_toolset_20260401",
-          default_config: { enabled: false },
-          configs: [{ name: "read", enabled: true }],
-        },
-        {
-          type: "custom",
-          name: PONG_TOOL,
-          description:
-            "Echo service for the ping-pong protocol. Call it exactly once when the user sends `ping <nonce>`, passing the nonce verbatim. It returns JSON containing `reply`, the same `nonce`, and `handled_by` (which deployment answered). It has no other purpose and must not be called otherwise.",
-          input_schema: {
-            type: "object",
-            properties: {
-              nonce: { type: "string", description: "The nonce token from the ping message, verbatim." },
-            },
-            required: ["nonce"],
-          },
-        },
-      ],
+      tools: AGENT_TOOLS,
       metadata: { smoke: SMOKE_KIND, target },
-    }));
+    });
 
   return {
     target,
     environment: { id: environment.id, name: environment.name },
     skill: { id: skill.id, version: skill.latest_version_id },
-    agent: { id: agent.id, version: agent.version, name: agent.name, created_at: agent.created_at },
+    agent: { id: agent.id, version: agent.version, name: agent.name, created_at: agent.created_at, toolsCurrent: true },
   };
 }

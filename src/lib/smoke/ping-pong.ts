@@ -1,37 +1,24 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { anthropic, deployTarget } from "@/lib/anthropic";
+import { runTool } from "@/lib/smoke/tools";
 
 /**
- * Ping-pong smoke test — the custom-tool half.
+ * Smoke test — the custom-tool half.
  *
- * The agent (see scripts/smoke/setup.ts) has one custom tool, `pong`. When it
- * calls it, the session idles with stop_reason `requires_action` and Anthropic
- * fires a webhook. The webhook handler calls `settlePingPongSession`, which
- * answers every unanswered `pong` call and returns.
+ * When the agent calls a custom tool the session idles with stop_reason
+ * `requires_action` and Anthropic fires a webhook. The handler calls
+ * `settlePingPongSession`, which answers every unanswered call and returns.
  *
- * Designed to be safe under the webhook's delivery guarantees: duplicates,
- * out-of-order arrival, and no delivery at all. State is always read from the
- * session's event log, never inferred from which webhook arrived.
+ * Safe under the webhook's delivery guarantees (duplicates, reordering, drops):
+ * state is always read from the session's event log, never inferred from
+ * which webhook arrived.
  */
 
 export const SMOKE_KIND = "ping-pong";
-export const PONG_TOOL = "pong";
+export { PONG_TOOL } from "@/lib/smoke/tools";
 
 type SessionEvent = Anthropic.Beta.Sessions.BetaManagedAgentsSessionEvent;
 type CustomToolUse = Extract<SessionEvent, { type: "agent.custom_tool_use" }>;
-
-export function pong(input: unknown) {
-  const nonce =
-    typeof input === "object" && input !== null && "nonce" in input
-      ? String((input as { nonce: unknown }).nonce)
-      : null;
-  return {
-    reply: "pong",
-    nonce,
-    handled_by: deployTarget(),
-    handled_at: new Date().toISOString(),
-  };
-}
 
 export async function listAllEvents(sessionId: string): Promise<SessionEvent[]> {
   const events: SessionEvent[] = [];
@@ -51,7 +38,7 @@ export function unansweredToolUses(events: SessionEvent[]): CustomToolUse[] {
 
 export type SettleResult =
   | { action: "skipped"; reason: "not-smoke" | "other-target" | "nothing-pending" }
-  | { action: "answered"; toolUseIds: string[] };
+  | { action: "answered"; tools: string[] };
 
 export async function settlePingPongSession(sessionId: string): Promise<SettleResult> {
   const session = await anthropic.beta.sessions.retrieve(sessionId);
@@ -62,25 +49,22 @@ export async function settlePingPongSession(sessionId: string): Promise<SettleRe
   const pending = unansweredToolUses(await listAllEvents(sessionId));
   if (pending.length === 0) return { action: "skipped", reason: "nothing-pending" };
 
-  // All results in one send — the agent may have issued parallel calls.
-  await anthropic.beta.sessions.events.send(sessionId, {
-    events: pending.map((call) => {
-      const isPong = call.name === PONG_TOOL;
+  const results = await Promise.all(
+    pending.map(async (call) => {
+      const { result, isError } = await runTool(call.name, call.input).catch((err: unknown) => ({
+        result: { error: err instanceof Error ? err.message : String(err) },
+        isError: true,
+      }));
       return {
         type: "user.custom_tool_result" as const,
         custom_tool_use_id: call.id,
-        is_error: !isPong,
-        content: [
-          {
-            type: "text" as const,
-            text: isPong
-              ? JSON.stringify(pong(call.input))
-              : `Unknown tool: ${call.name}`,
-          },
-        ],
+        is_error: isError,
+        content: [{ type: "text" as const, text: JSON.stringify(result) }],
       };
     }),
-  });
+  );
 
-  return { action: "answered", toolUseIds: pending.map((c) => c.id) };
+  // All results in one send — the agent may have issued parallel calls.
+  await anthropic.beta.sessions.events.send(sessionId, { events: results });
+  return { action: "answered", tools: pending.map((c) => c.name) };
 }

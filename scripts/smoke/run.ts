@@ -39,6 +39,7 @@ async function main() {
   }
   console.log(`\nstopped: ${result.stop ?? result.status}  after ${((Date.now() - started) / 1000).toFixed(1)}s`);
   for (const c of result.checks) console.log(`${c.ok ? "PASS" : "FAIL"}  ${c.label}`);
+  if (result.summary) console.log(`\n--- ${result.summary.symbol} · ${result.summary.period} ---\n${result.summary.summary}\n`);
   console.log(`cost    $${(result.listCostCents / 100).toFixed(2)} list`);
   console.log(`trace   ${result.traceUrl}`);
   process.exit(result.pass ? 0 : 1);

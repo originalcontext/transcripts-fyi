@@ -88,6 +88,14 @@ export function SmokeRunner({ target }: { target: string }) {
               </li>
             </ul>
           )}
+          {run.result?.summary && (
+            <div className="mt-3 border-t border-neutral-200 pt-3 dark:border-neutral-800">
+              <div className="mb-1 font-medium">
+                {run.result.summary.symbol} · {run.result.summary.period}
+              </div>
+              <pre className="whitespace-pre-wrap font-sans text-sm">{run.result.summary.summary}</pre>
+            </div>
+          )}
         </div>
       ))}
     </section>

@@ -26,13 +26,13 @@ export default async function Home() {
           <tbody>
             <Row k="environment" v={stack.environment ? `${stack.environment.id}  ${stack.environment.name}` : null} />
             <Row k="skill" v={stack.skill ? `${stack.skill.id}  ${stack.skill.version}` : null} />
-            <Row k="agent" v={stack.agent ? `${stack.agent.id}  v${stack.agent.version}` : null} />
+            <Row k="agent" v={stack.agent ? `${stack.agent.id}  v${stack.agent.version}${stack.agent.toolsCurrent ? "" : "  (tools out of date)"}` : null} />
           </tbody>
         </table>
-        {!stack.agent && (
+        {(!stack.agent || !stack.agent.toolsCurrent) && (
           <form action={createStackAction}>
             <button className="rounded bg-black px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-black">
-              Create smoke agent ({target})
+              {stack.agent ? `Update smoke agent (${target}) → new version` : `Create smoke agent (${target})`}
             </button>
             <p className="mt-1 text-xs text-neutral-500">
               find-or-create environment, skill, agent — tagged metadata.target={target}
@@ -41,7 +41,7 @@ export default async function Home() {
         )}
       </section>
 
-      {stack.agent && (
+      {stack.agent?.toolsCurrent && (
         <>
           <SmokeRunner target={target} />
 
