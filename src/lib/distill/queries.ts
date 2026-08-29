@@ -56,6 +56,19 @@ export async function sessionTrace(sessionId: string) {
   ]);
   const idle = events.filter((e) => e.type === "session.status_idle").at(-1);
   const stop = idle?.type === "session.status_idle" ? idle.stop_reason.type : null;
+  const t0 = Date.parse(session.created_at);
+  const modelRequests = events.filter((e) => e.type === "span.model_request_end");
+  const tokens = modelRequests.reduce(
+    (acc, e) => {
+      if (e.type !== "span.model_request_end" || !e.model_usage) return acc;
+      acc.in += e.model_usage.input_tokens ?? 0;
+      acc.cacheRead += e.model_usage.cache_read_input_tokens ?? 0;
+      acc.cacheWrite += e.model_usage.cache_creation_input_tokens ?? 0;
+      acc.out += e.model_usage.output_tokens ?? 0;
+      return acc;
+    },
+    { in: 0, cacheRead: 0, cacheWrite: 0, out: 0 },
+  );
   const rows = events
     .filter((e) => !e.type.startsWith("span.") && e.type !== "agent.thinking")
     .map((e) => {
@@ -68,16 +81,20 @@ export async function sessionTrace(sessionId: string) {
         detail = `${e.is_error ? "error " : ""}${(e.content ?? []).flatMap((b) => (b.type === "text" ? [b.text.length] : [])).join("")} chars`;
       else if (e.type === "session.status_idle") detail = e.stop_reason.type;
       else if (e.type === "session.error") detail = JSON.stringify(e.error).slice(0, 120);
-      return { id: e.id, type: e.type, at: e.processed_at, detail };
+      const at = e.processed_at ? Date.parse(e.processed_at) : NaN;
+      return { id: e.id, type: e.type, at: e.processed_at, elapsedS: Number.isNaN(at) ? null : (at - t0) / 1000, detail };
     });
+  const last = events.map((e) => (e.processed_at ? Date.parse(e.processed_at) : 0)).reduce((a, b) => Math.max(a, b), t0);
   return {
     status: session.status,
     stop,
     listCostCents: Number(session.usage.list_cost?.amount ?? 0),
     budgetCents: Number(session.budget?.max_list_cost.amount ?? 0),
-    inputTokens: session.usage.input_tokens,
-    outputTokens: session.usage.output_tokens,
-    events: rows.slice(-60),
+    wallS: (last - t0) / 1000,
+    modelRequests: modelRequests.length,
+    tokens,
+    eventCount: events.length,
+    events: rows.slice(-80),
     traceUrl: `https://platform.claude.com/workspaces/default/sessions/${sessionId}`,
   };
 }
