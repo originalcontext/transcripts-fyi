@@ -6,10 +6,17 @@ import { runDistillTool } from "@/lib/distill/tools";
 import { listAllEvents, unansweredToolUses } from "@/lib/smoke/ping-pong";
 
 export type DistillSettle =
-  | { action: "skipped"; reason: "not-ours" | "other-target" | "unknown-run" | "nothing-pending" }
-  | { action: "answered"; runId: string; tools: string[] };
+  | { action: "skipped"; reason: "not-ours" | "other-target" | "unknown-run" }
+  | { action: "synced"; runId: string; status: RunStatus; tools: string[] };
 
-/** Webhook entry point for distiller sessions: answer whatever tool calls are pending. */
+type RunStatus = typeof schema.runs.$inferSelect["status"];
+
+/**
+ * Webhook entry point for distiller sessions — the single seam between CMA and
+ * product state. Answers pending tool calls, then records the run's status and
+ * cost so the mainline never has to ask CMA. Idempotent; safe to call on any
+ * session.* event, in any order, any number of times.
+ */
 export async function settleDistillSession(sessionId: string): Promise<DistillSettle> {
   const session = await anthropic.beta.sessions.retrieve(sessionId);
   const m = session.metadata ?? {};
@@ -19,8 +26,8 @@ export async function settleDistillSession(sessionId: string): Promise<DistillSe
   const [run] = await db.select().from(schema.runs).where(eq(schema.runs.id, m.run_id));
   if (!run) return { action: "skipped", reason: "unknown-run" };
 
-  const pending = unansweredToolUses(await listAllEvents(sessionId));
-  if (pending.length === 0) return { action: "skipped", reason: "nothing-pending" };
+  const events = await listAllEvents(sessionId);
+  const pending = unansweredToolUses(events);
 
   const results = await Promise.all(
     pending.map(async (call) => {
@@ -37,7 +44,21 @@ export async function settleDistillSession(sessionId: string): Promise<DistillSe
       };
     }),
   );
-  await anthropic.beta.sessions.events.send(sessionId, { events: results });
-  await db.update(schema.runs).set({ lastActivityAt: new Date() }).where(eq(schema.runs.id, run.id));
-  return { action: "answered", runId: run.id, tools: pending.map((c) => c.name) };
+  if (results.length > 0) await anthropic.beta.sessions.events.send(sessionId, { events: results });
+
+  // Derive status from the resource, not from which webhook arrived.
+  const idle = events.filter((e) => e.type === "session.status_idle").at(-1);
+  const stop = idle?.type === "session.status_idle" ? idle.stop_reason.type : null;
+  let status: RunStatus = "working";
+  if (session.status === "terminated") status = "ended";
+  else if (results.length > 0) status = "working"; // we just answered; the agent resumes
+  else if (session.status === "idle" && stop === "budget_reached") status = "budget_reached";
+  else if (session.status === "idle" && stop === "retries_exhausted") status = "ended";
+  else if (session.status === "idle" && stop === "end_turn") status = "idle";
+
+  await db
+    .update(schema.runs)
+    .set({ status, listCostCents: Number(session.usage.list_cost?.amount ?? 0), lastActivityAt: new Date() })
+    .where(eq(schema.runs.id, run.id));
+  return { action: "synced", runId: run.id, status, tools: pending.map((c) => c.name) };
 }

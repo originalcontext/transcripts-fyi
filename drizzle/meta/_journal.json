@@ -15,6 +15,13 @@
       "when": 1788018435609,
       "tag": "0001_talented_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788020185903,
+      "tag": "0002_long_gravity",
+      "breakpoints": true
     }
   ]
 }

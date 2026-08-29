@@ -20,12 +20,13 @@ Prod: https://transcripts.fyi · Dev: `npm run dev` + ngrok → `/webhook`
 - **UI kit** — shadcn (Radix primitives, nova preset, neutral, CSS vars), lucide icons, next-themes (class strategy, system default), sonner toasts. Components live in `src/components/ui/`; add more with `npx shadcn add <name>`.
 - **Docs** — `docs/managed-agents/` local reference, verified against live docs 2026-08-29. Sprint notes in `docs/sprints/`.
 
+- **Mainline behind the line** — the server render touches Postgres only; `runs.status` / `list_cost_cents` are maintained by the webhook. The CMA-backed trace pane is admin-gated (`ADMIN_INVITE_CODE`) and fetched client-side after mount, so admins and non-admins get the same TTFB and a CMA outage can't slow or break a page.
 - **Product v0** — three panes: universe (left), latest explainer rendered in a sandboxed iframe (middle), "how the sausage was made" live from the CMA session with a budget-bump button (right). "Add to universe" creates the subject, finds-or-creates the distiller stack, starts a $10-capped long-lived session; the webhook answers `list_transcripts` / `fetch_transcript` (FMP) and `post_artifact` (Postgres). NVDA: 8 quarters, ~3 min, ~$1.40.
 - **Data model** — `subjects` (kind + key), `runs` (subject × skill → one CMA session), `artifacts` (append-only, unique on tool-use id). `docs/` and `README` carry the rationale.
 
 ## Below the line (next)
 
-- **Resiliency sprint** — orphaned sessions if the run insert fails after session create; run status vs. live session status; retries on FMP; what "working" means in the sidebar beyond "no artifact yet".
+- **Webhook consistency & resiliency sprint (first).** The webhook is the single seam between CMA and product state — artifacts, run status, cost all cross there. Make it boringly correct: orphaned sessions when the `runs` insert fails after `sessions.create`; stuck `requires_action` if a delivery is dropped after three retries; FMP retries/timeouts inside the handler; handler runtime vs. Vercel function limits. **Belt and suspenders via Vercel crons:** a *reconciler* (every few minutes: for runs not `ended`, `sessions.retrieve` and re-settle any that drifted or are stuck) and a *GC* (archive CMA sessions for runs `ended` > N days, prune `webhook_events`). Webhooks fast-path; crons guarantee eventual consistency.
 - **Skills & system prompts sprint** — the distiller skill and system prompt are deliberately plain right now; make them effective (longitudinal structure, citations, tone) as a dedicated pass.
 - **Versioning of skills, agents, environments** — today: skill found by name (edits need a manual new version), agent auto-versions on tool drift, environment never changes. Think through implications: pinning runs to versions, migrating long-lived sessions, rollback.
 - **Persistence at the CMA layer for ongoing synthesis** — long-lived session vs. memory store vs. re-run from artifacts when a new transcript arrives.
@@ -66,6 +67,7 @@ Quoted where Eddie said it; *implied* where it followed from the conversation.
 | 19 | One transcript per custom-tool call | *Finding:* a custom tool result truncates around 100k chars (a 385k batch lost everything past ~3 transcripts). Built-in tools spill to a file; custom tools don't. So `list_transcripts` + `fetch_transcript`, ≤2 in parallel |
 | 20 | Plain HTML in the tool call, not base64 | Recommended and unopposed: JSON escaping handles it, base64 costs 33% more output tokens and hides the content in the trace |
 | 21 | Skills and system prompts stay simple for now | "keep the skills and system instructions simple but effective for now, that's a whole sprint later" |
+| 22 | Mainline reads Postgres only; the sausage may cheat, behind an admin flag, off the render path | "the main-line product is predictable and risk free eventually even if the show and tell parts cheat" — nothing user-facing derives from a live CMA call; the webhook materializes what the mainline needs |
 
 ## Running it
 

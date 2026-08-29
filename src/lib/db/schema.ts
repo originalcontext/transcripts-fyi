@@ -39,10 +39,14 @@ export const runs = pgTable("runs", {
   cmaAgentId: text("cma_agent_id").notNull(),
   cmaAgentVersion: integer("cma_agent_version").notNull(),
   cmaEnvironmentId: text("cma_environment_id").notNull(),
-  status: text("status").notNull().default("active"),
+  /** Maintained by the webhook: working | idle | budget_reached | ended. The mainline reads only this. */
+  status: text("status").notNull().default("working"),
+  listCostCents: integer("list_cost_cents").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   lastActivityAt: timestamp("last_activity_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export type RunStatus = "working" | "idle" | "budget_reached" | "ended";
 
 /** Every result the agent posts. Append-only; latest = max(created_at). */
 export const artifacts = pgTable("artifacts", {

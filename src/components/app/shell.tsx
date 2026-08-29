@@ -37,9 +37,9 @@ export async function Shell({ current, children }: { current?: string; children:
                   className={cn(
                     "block rounded px-2 py-1 font-mono text-sm hover:bg-accent",
                     s.key === current && "bg-accent",
-                    !s.hasArtifact && "text-muted-foreground/60 italic",
+                    s.working && !s.hasArtifact && "text-muted-foreground/60 italic",
                   )}
-                  title={s.hasArtifact ? undefined : "working…"}
+                  title={s.working ? "working…" : undefined}
                 >
                   {s.key}
                 </Link>

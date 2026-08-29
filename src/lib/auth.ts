@@ -42,5 +42,24 @@ export async function isValidSession(cookieValue: string | undefined) {
 }
 
 export function isValidInvite(submitted: string) {
-  return timingSafeEqual(submitted.trim(), inviteCode());
+  return timingSafeEqual(submitted.trim(), inviteCode()) || isAdminInvite(submitted);
+}
+
+/**
+ * Admin gate for the heavy, CMA-backed "sausage" views. Set ADMIN_INVITE_CODE
+ * to enable: logging in with it mints an extra admin cookie. Unset → everyone
+ * is admin (today's friends-demo behavior).
+ */
+export const ADMIN_COOKIE = "tfyi_admin";
+
+export const adminToken = () => hmac(process.env.ADMIN_INVITE_CODE ?? "", "admin-v1");
+
+export function isAdminInvite(submitted: string) {
+  const code = process.env.ADMIN_INVITE_CODE;
+  return !!code && timingSafeEqual(submitted.trim(), code);
+}
+
+export async function isAdmin(cookieValue: string | undefined) {
+  if (!process.env.ADMIN_INVITE_CODE) return true;
+  return !!cookieValue && timingSafeEqual(cookieValue, await adminToken());
 }

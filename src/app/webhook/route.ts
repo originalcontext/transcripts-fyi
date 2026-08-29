@@ -46,19 +46,17 @@ export async function POST(request: Request) {
     console.log("webhook", { ...log, action: "duplicate" });
     return new Response(null, { status: 204 });
   }
-  switch (event.data.type) {
-    case "session.status_idled":
-    case "session.requires_action": {
-      // Each settler inspects the session's metadata and skips what isn't its own.
-      const [distill, smoke] = await Promise.all([
-        settleDistillSession(event.data.id),
-        settlePingPongSession(event.data.id),
-      ]);
-      console.log("webhook", { ...log, distill, smoke });
-      break;
-    }
-    default:
-      console.log("webhook", log);
+  // Every session transition is a chance to answer pending tools and to
+  // re-sync run status/cost. Settlers are idempotent and skip sessions that
+  // aren't theirs, so routing is by prefix, not by exact event type.
+  if (event.data.type.startsWith("session.") && event.data.type !== "session.deleted") {
+    const [distill, smoke] = await Promise.all([
+      settleDistillSession(event.data.id),
+      settlePingPongSession(event.data.id),
+    ]);
+    console.log("webhook", { ...log, distill, smoke });
+  } else {
+    console.log("webhook", log);
   }
 
   return new Response(null, { status: 204 });

@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { anthropic } from "@/lib/anthropic";
 import { db, schema } from "@/lib/db";
 
@@ -9,7 +9,8 @@ export async function listUniverse() {
       id: schema.subjects.id,
       key: schema.subjects.key,
       displayName: schema.subjects.displayName,
-      hasArtifact: sql<boolean>`exists (select 1 from ${schema.artifacts} a where a.subject_id = ${schema.subjects.id})`,
+      hasArtifact: sql<boolean>`exists (select 1 from ${schema.artifacts} a where a.subject_id = ${schema.subjects}.id)`,
+      working: sql<boolean>`exists (select 1 from ${schema.runs} r where r.subject_id = ${schema.subjects}.id and r.status = 'working')`,
     })
     .from(schema.subjects)
     .orderBy(schema.subjects.key);
@@ -37,13 +38,13 @@ export async function activeRun(subjectId: string, skill: string) {
   const [r] = await db
     .select()
     .from(schema.runs)
-    .where(and(eq(schema.runs.subjectId, subjectId), eq(schema.runs.skill, skill), eq(schema.runs.status, "active")))
+    .where(and(eq(schema.runs.subjectId, subjectId), eq(schema.runs.skill, skill), ne(schema.runs.status, "ended")))
     .orderBy(desc(schema.runs.createdAt))
     .limit(1);
   return r ?? null;
 }
 
-/** "How the sausage was made": live from the CMA session, no DB copy. */
+/** "How the sausage was made": live from the CMA session. Admin-only, fetched client-side, never on the render path. */
 export async function sessionTrace(sessionId: string) {
   const [session, events] = await Promise.all([
     anthropic.beta.sessions.retrieve(sessionId),
