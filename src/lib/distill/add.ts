@@ -9,7 +9,7 @@ import { activeRun, getSubject } from "@/lib/distill/queries";
 import { DISTILL_SKILL } from "@/lib/distill/skill";
 import { APP, ensureDistillStack } from "@/lib/distill/stack";
 
-const RUN_BUDGET_CENTS = 1500; // $15 per run (20 quarters)
+const RUN_BUDGET_CENTS = 2500; // $25 per run (20 quarters; NVDA measured ~$9.50)
 const MAX_SUBJECTS = 100; // shared universe, trusted invitees — a ceiling, not a quota
 const MAX_REGENERATIONS = 10; // per subject, beyond the first run
 

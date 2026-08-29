@@ -4,7 +4,7 @@
 
 ## Mental model
 
-A shared "universe" of stock tickers, capped at 100. Adding one creates a `subjects` row and a `runs` row, and starts a long-lived Claude Managed Agents (CMA) session pinned to a specific agent version with a `$15` list-cost budget (`RUN_BUDGET_CENTS`, `src/lib/distill/add.ts`). The agent follows the `earnings-transcripts` skill: it lists the ticker's earnings-call transcripts, fetches the newest twenty one at a time, writes per-quarter notes into its sandbox (`/workspace/notes/`), reads them back, and posts one self-contained interactive dark-mode HTML explainer. The app never holds a connection to CMA: every custom tool the agent calls parks the session, Anthropic POSTs a thin event to `/webhook`, and the handler answers the tool from the session's own event log and syncs the run's status and cost into Postgres. A reconciler cron repairs anything a dropped delivery leaves behind. The product page renders from Postgres only. Dev and prod share one Anthropic workspace, so both receive every webhook; sessions carry `metadata.target` and each deployment answers only its own (`deployTarget()` in `src/lib/anthropic.ts`).
+A shared "universe" of stock tickers, capped at 100. Adding one creates a `subjects` row and a `runs` row, and starts a long-lived Claude Managed Agents (CMA) session pinned to a specific agent version with a `$25` list-cost budget (`RUN_BUDGET_CENTS`, `src/lib/distill/add.ts`). The agent follows the `earnings-transcripts` skill: it lists the ticker's earnings-call transcripts, fetches the newest twenty one at a time, writes per-quarter notes into its sandbox (`/workspace/notes/`), reads them back, and posts one self-contained interactive dark-mode HTML explainer. The app never holds a connection to CMA: every custom tool the agent calls parks the session, Anthropic POSTs a thin event to `/webhook`, and the handler answers the tool from the session's own event log and syncs the run's status and cost into Postgres. A reconciler cron repairs anything a dropped delivery leaves behind. The product page renders from Postgres only. Dev and prod share one Anthropic workspace, so both receive every webhook; sessions carry `metadata.target` and each deployment answers only its own (`deployTarget()` in `src/lib/anthropic.ts`).
 
 ## Request flow: "Add to universe"
 
@@ -101,7 +101,7 @@ Definitions live on the agent (`DISTILL_TOOLS`), implementations in `runDistillT
 - No connections, no transactions: Neon over HTTP, Upstash over REST, CMA over webhooks. Writes are shaped so they don't need a transaction (append-only, `onConflictDoNothing`).
 - Sessions are pinned to an agent version at creation and never move. Code drift publishes new versions for *new* sessions only; "Regenerate" / "Request update" is how an existing run catches up. `runs.cma_*` records exactly what a run ran on.
 - Agent/environment/skill live in Anthropic's resources, found by metadata/name; there are no DB rows for them.
-- Spend is bounded by ceilings, not quotas: $15 per session, 100 subjects, 10 regenerations per subject. Everyone is admin until `ADMIN_INVITE_CODE` is set (small trusted set, deliberate).
+- Spend is bounded by ceilings, not quotas: $25 per session, 100 subjects, 10 regenerations per subject. Everyone is admin until `ADMIN_INVITE_CODE` is set (small trusted set, deliberate).
 
 ## Further reading
 
