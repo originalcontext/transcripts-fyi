@@ -18,6 +18,8 @@ type Universe = Awaited<ReturnType<typeof listUniverse>>;
 /**
  * App chrome. The page passes the universe it already fetched (one round for
  * everything) and its Postgres time; pages without one let the shell fetch.
+ * `action` sits in the header's top-right on small screens only (the mobile
+ * stand-in for the trace rail).
  */
 async function timedUniverse(universe?: Universe) {
   if (universe) return { list: universe, ms: 0 };
@@ -26,7 +28,7 @@ async function timedUniverse(universe?: Universe) {
   return { list, ms: performance.now() - t0 };
 }
 
-export async function Shell({ current, universe, hotPathMs = 0, children }: { current?: string; universe?: Universe; hotPathMs?: number; children: React.ReactNode }) {
+export async function Shell({ current, universe, hotPathMs = 0, action, children }: { current?: string; universe?: Universe; hotPathMs?: number; action?: React.ReactNode; children: React.ReactNode }) {
   const { list, ms } = await timedUniverse(universe);
   const totalMs = Math.round(hotPathMs + ms);
   const target = deployTarget();
@@ -61,7 +63,10 @@ export async function Shell({ current, universe, hotPathMs = 0, children }: { cu
           <Link href="/" className="truncate font-semibold">transcripts.fyi</Link>
           {target === "dev" && <Badge variant="outline">{target}</Badge>}
         </div>
-        <div className="hidden md:block">{account}</div>
+        <div className="flex items-center gap-2">
+          {action && <div className="md:hidden">{action}</div>}
+          <div className="hidden md:block">{account}</div>
+        </div>
       </header>
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-56 shrink-0 overflow-y-auto border-r p-2 md:block">{sidebar}</aside>

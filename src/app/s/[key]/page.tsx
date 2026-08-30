@@ -5,7 +5,7 @@ import { ArtifactFrame } from "@/components/app/artifact-frame";
 import { AutoRefresh } from "@/components/app/auto-refresh";
 import { RequestUpdate } from "@/components/app/request-update";
 import { Sausage } from "@/components/app/sausage";
-import { SausageLayout } from "@/components/app/sausage-layout";
+import { SausageLayout, TraceToggle } from "@/components/app/sausage-layout";
 import { Shell } from "@/components/app/shell";
 import { WorkingHero } from "@/components/app/working-hero";
 import { injectArtifactHead } from "@/lib/artifact/imports";
@@ -45,7 +45,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ key: s
   const working = run?.status === "working";
 
   return (
-    <Shell current={subject.key} universe={universe} hotPathMs={hotPathMs}>
+    <Shell current={subject.key} universe={universe} hotPathMs={hotPathMs} action={admin ? <TraceToggle /> : undefined}>
       <AutoRefresh active={!!run && working} subjectId={subject.id} />
 
       <SausageLayout

@@ -55,9 +55,9 @@ const subscribe = (l: () => void) => {
  * The panel is a glass sheet that overlays the RIGHT side of the middle pane's
  * content area only — never the nav, the header, or the pane's own status row,
  * and nothing behind it is dimmed. With no stored preference it starts open
- * at `md` and up and closed below. A full-height amber rail on the pane's right edge is the toggle;
- * when closed, only the rail remains. Same mechanism at every width; the panel
- * just gets narrower on small screens. `panel` is null for non-admins → no rail.
+ * at `md` and up and closed below. At `md` and up a full-height amber rail on the pane's right edge is the toggle;
+ * when closed, only the rail remains. Below `md` there is no rail: closed means
+ * fully off-screen, and `TraceToggle` in the header (Shell's `action` slot) flips it. `panel` is null for non-admins → no rail.
  */
 export function SausageLayout({ header, panel, children }: { header: React.ReactNode; panel: React.ReactNode | null; children: React.ReactNode }) {
   const open = useSyncExternalStore(subscribe, readOpen, () => true);
@@ -77,18 +77,18 @@ export function SausageLayout({ header, panel, children }: { header: React.React
           className={cn(
             "sausage-drawer absolute inset-y-0 right-0 flex transition-transform duration-200 ease-out",
             // closed: slide the panel off to the right, leaving just the rail
-            !open && "translate-x-[calc(100%-1.5rem)]",
+            !open && "translate-x-full md:translate-x-[calc(100%-2rem)]",
           )}
         >
           <button
             type="button"
             onClick={() => writeOpen(!open)}
             aria-expanded={open}
-            aria-label={open ? "Hide how the sausage was made" : "Show how the sausage was made"}
-            className="flex w-6 shrink-0 cursor-pointer flex-col items-center justify-center gap-3 border-l border-amber-600/40 bg-amber-400 text-amber-950 hover:bg-amber-300 dark:bg-amber-500 dark:hover:bg-amber-400"
+            aria-label={open ? "Hide the trace" : "Show the trace"}
+            className="hidden w-8 shrink-0 cursor-pointer flex-col items-center justify-center gap-3 border-l border-amber-600/40 bg-amber-500 text-amber-950 opacity-70 transition-opacity hover:opacity-100 focus-visible:opacity-100 md:flex"
           >
             {open ? <ChevronRightIcon className="size-4" /> : <ChevronLeftIcon className="size-4" />}
-            <span className="font-mono text-[10px] font-medium uppercase tracking-widest [writing-mode:vertical-rl]">sausage</span>
+            <span className="font-mono text-[10px] font-medium uppercase tracking-widest [writing-mode:vertical-rl]">trace</span>
             {open ? <ChevronRightIcon className="size-4" /> : <ChevronLeftIcon className="size-4" />}
           </button>
 
@@ -109,5 +109,24 @@ export function SausageLayout({ header, panel, children }: { header: React.React
         )}
       </div>
     </main>
+  );
+}
+
+/** Mobile stand-in for the rail: an amber "trace" toggle in the header's top-right (Shell's `action` slot). Same store as the drawer. */
+export function TraceToggle() {
+  const open = useSyncExternalStore(subscribe, readOpen, () => true);
+  return (
+    <button
+      type="button"
+      onClick={() => writeOpen(!open)}
+      aria-pressed={open}
+      aria-label={open ? "Hide the trace" : "Show the trace"}
+      className={cn(
+        "rounded-md border border-amber-500/40 px-2 py-1 font-mono text-[10px] font-medium tracking-widest uppercase transition-colors",
+        open ? "bg-amber-500 text-amber-950" : "bg-amber-500/15 text-amber-300 hover:bg-amber-500/30",
+      )}
+    >
+      trace
+    </button>
   );
 }

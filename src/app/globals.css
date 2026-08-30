@@ -133,11 +133,17 @@
 }
 /* Sausage drawer: the SSR markup is "open"; before hydration a pre-paint
    script stamps html[data-sausage] from localStorage, and this rule holds the
-   drawer closed (rail only) so a closed preference never flashes open. After
+   drawer closed (rail only at `md` and up; fully off-screen below) so a closed
+   preference never flashes open. After
    hydration React renders the same state, so nothing moves. */
 /* Same property Tailwind's translate-x-* utility sets, so the two never stack. */
 html[data-sausage="0"] .sausage-drawer {
-  translate: calc(100% - 1.5rem) 0;
+  translate: 100% 0;
+}
+@media (min-width: 768px) {
+  html[data-sausage="0"] .sausage-drawer {
+    translate: calc(100% - 2rem) 0;
+  }
 }
 
 /* Working hero: each line from a call into the explainer pulses on its own beat. */

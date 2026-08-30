@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRightIcon } from "lucide-react";
 import { useActionState } from "react";
 
 import { loginAction } from "@/app/login/actions";
@@ -23,6 +24,7 @@ export function LoginForm({ next, invite }: { next: string; invite: string }) {
           autoComplete="off"
           spellCheck={false}
           placeholder="Paste your invite code"
+          className="h-10 bg-black/30 px-3 font-mono text-sm"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "code-error" : undefined}
         />
@@ -32,8 +34,9 @@ export function LoginForm({ next, invite }: { next: string; invite: string }) {
           </p>
         )}
       </div>
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" size="lg" className="h-10 w-full" disabled={pending}>
         Enter
+        <ArrowRightIcon data-icon="inline-end" className="transition-transform group-hover/button:translate-x-0.5" />
       </Button>
     </form>
   );
