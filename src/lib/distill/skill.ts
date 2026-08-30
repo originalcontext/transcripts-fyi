@@ -83,10 +83,22 @@ any other library, \`fetch\`, or \`import\`.
 
 ${libs}
 
-Charts get a \`<canvas>\` with a fixed height. Alpine boots after your
-document parses; put interactivity in \`x-data\` on the elements themselves,
-and any imperative setup (charts, \`lucide.createIcons()\`) in one
-\`<script>\` at the end of \`<body>\` guarded by \`DOMContentLoaded\`.
+Charts: Chart.js in responsive mode sizes the canvas to its *parent*, so
+every canvas needs its own wrapper that holds nothing else and has an
+explicit height —
+\`<div style="position:relative;height:260px"><canvas id="…"></canvas></div>\`
+— with \`responsive: true, maintainAspectRatio: false\`. Captions, padding
+and borders belong on an element *outside* that wrapper. A canvas that
+shares its parent with a caption, or whose parent has no set height,
+resizes itself forever (each pass adds the caption's height to the chart).
+The canvas \`height=\` attribute does nothing in responsive mode. Charts
+inside collapsed sections are fine with this wrapper; they size themselves
+when the section opens.
+
+Alpine boots after your document parses; put interactivity in \`x-data\`
+on the elements themselves, and any imperative setup (charts,
+\`lucide.createIcons()\`) in one \`<script>\` at the end of \`<body>\`
+guarded by \`DOMContentLoaded\`.
 
 ## Errors
 
