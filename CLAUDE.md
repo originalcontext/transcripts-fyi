@@ -5,7 +5,7 @@
 1. `docs/codebase/README.md` — guided tour of the code (reading order, one request and one webhook traced end to end, conventions, glossary)
 2. `docs/app/README.md` — architecture index (mental model, request flow, directory map, data model, invariants)
 3. `docs/app/runbook.md` — operations (env vars, local dev + ngrok, migrations, crons, smoke, sharp edges)
-4. `README.md` — decisions table, above/below the line, TODOs
+4. `README.md` — quick orientation; `docs/app/decisions.md` — decision log; `docs/app/changelog.md` / `docs/app/todo.md` — what shipped, what's next
 
 ## Hard rules
 

@@ -14,7 +14,7 @@
 | `DATABASE_URL` | dev Neon | verify (Neon integration) | prod Neon | Vercel Neon integration | Pooled HTTP URL; the app (`neon-http`) and `drizzle-kit` both read it. Neon is per environment |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN` | yes | yes | yes | Vercel Upstash integration | One Redis shared by all targets; every key goes through `key()` for a `<target>:` prefix |
 | `INVITE_CODE` | yes | yes | yes | you | Gate *and* cookie HMAC secret; rotate to log everyone out. Dev and prod share one code today (per sprint notes; verify in Vercel) |
-| `ADMIN_INVITE_CODE` | not set today | verify | verify | you | Optional. Logging in with it mints `tfyi_admin`. **Unset = everyone is admin** (`isAdmin` returns true) — deliberate for the small trusted set (root README decision 26); set it before the audience grows |
+| `ADMIN_INVITE_CODE` | not set today | verify | verify | you | Optional. Logging in with it mints `tfyi_admin`. **Unset = everyone is admin** (`isAdmin` returns true) — deliberate for the small trusted set (decision 26, `docs/app/decisions.md`); set it before the audience grows |
 | `SMOKE_TARGET` | `dev` | never | never | you, local only | Forces `deployTarget()`. On Vercel leave unset: `VERCEL_ENV === 'production'` → `prod`, anything else → `dev` |
 | `VERCEL_ENV`, `NODE_ENV` | — | auto | auto | Vercel / Next | `NODE_ENV=production` sets the cookie `secure` flag |
 | `ENV_FILE` | — | — | — | you, on the CLI | npm scripts read `--env-file=${ENV_FILE:-.env.local}`; e.g. `ENV_FILE=.env.prod.local` |

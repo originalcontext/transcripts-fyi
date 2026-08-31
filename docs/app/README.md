@@ -24,7 +24,7 @@ A shared "universe" of stock tickers, capped at 100. Adding one creates a `subje
 |---|---|---|
 | What | `/`, `/s/[key]`, sidebar | Right-hand "How the sausage was made" drawer, `/api/runs/[id]/trace`, `/smoke` |
 | Reads | Postgres only (`listUniverse`, `latestArtifact`, `activeRun`) — badge shows `hot path · Nms · $0/view` | Live CMA (`sessions.retrieve` + full `events.list`) |
-| Who | Everyone with the invite cookie | Admin cookie (`ADMIN_INVITE_CODE`; unset = everyone is admin, deliberate — root README decision 26). Exception: `/smoke`, `/api/smoke/*` and the smoke actions check only the invite cookie today (review #11, open) |
+| Who | Everyone with the invite cookie | Admin cookie (`ADMIN_INVITE_CODE`; unset = everyone is admin, deliberate — [decision 26](./decisions.md)). Exception: `/smoke`, `/api/smoke/*` and the smoke actions check only the invite cookie today (review #11, open) |
 | When | Server render | Client fetch after mount; never on the render path |
 
 Why: the user-facing product must stay predictable and free per view even if CMA is slow or down; the webhook materializes everything the mainline needs, and the show-and-tell pane is allowed to cheat because it can't block a page.
@@ -67,7 +67,6 @@ Why: the user-facing product must stay predictable and free per view even if CMA
 | `vercel.json` | Cron schedules (`*/5 * * * *`, `17 4 * * *`) | cron cadence |
 | `drizzle/`, `drizzle.config.ts` | SQL migrations `0000`–`0003` + snapshots; CLI-only config | schema changes |
 | `e2e/`, `.githooks/pre-push`, `.github/workflows/` | Playwright (no secrets, :3100); `npm run check` on push and in CI | quality gate |
-| `docs/managed-agents/` | Local CMA reference (verified against live docs 2026-08-29) | CMA API questions |
 | `docs/apis/` | FMP and Massive quick refs | data-source questions |
 | `docs/reviews/`, `docs/sprints/`, `docs/ideas/` | Cooperative review; sprint notes; other document universes | history and rationale |
 
@@ -107,8 +106,8 @@ Definitions live on the agent (`DISTILL_TOOLS`), implementations in `runDistillT
 
 - [`../codebase/README.md`](../codebase/README.md) — guided tour: reading order, one request and one webhook traced end to end, conventions, glossary.
 - [`runbook.md`](./runbook.md) — env vars, local dev + ngrok, migrations, adding/resetting/regenerating subjects, the trace drawer, crons, smoke tests, sharp edges, where to look.
-- [`../managed-agents/README.md`](../managed-agents/README.md) — CMA reference; `webhooks.md`, `core.md` (stop reasons, budgets), `tools.md` are the ones this app leans on.
 - [`../apis/fmp.md`](../apis/fmp.md), [`../apis/massive.md`](../apis/massive.md) — data-source quick refs.
+- [`decisions.md`](./decisions.md) — the decision log with rationale; [`changelog.md`](./changelog.md) and [`todo.md`](./todo.md) — what shipped and what's next.
 - [`../reviews/2026-08-29-cooperative-review.md`](../reviews/2026-08-29-cooperative-review.md) — what was found, what landed, what is still open.
-- [`../sprints/2-hours.md`](../sprints/2-hours.md) — how v0 was built and what was learned; root `README.md` has the decisions table and above/below the line.
+- [`../sprints/2-hours.md`](../sprints/2-hours.md) — how v0 was built and what was learned.
 - [`../ideas/transcript-universes.md`](../ideas/transcript-universes.md) — candidate universes beyond earnings calls.
